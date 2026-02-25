@@ -38,6 +38,7 @@
 *.exe
 *.out
 *.app
+*irc
 
 
 # debug information files
