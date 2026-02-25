@@ -6,7 +6,7 @@
 /*   By: mairivie <mairivie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 16:51:38 by mairivie          #+#    #+#             */
-/*   Updated: 2026/02/25 16:57:19 by mairivie         ###   ########.fr       */
+/*   Updated: 2026/02/25 17:18:52 by mairivie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,14 @@
 #include <iostream>
 #include <string>
 
-int main(int ac, char * av) {
-    try {
+int main(int ac, char **av) {
+    // try {
         std::cout << av[0] << " <av[0] | ac> " << ac << std::endl;
         //check argc argv
         //init signal
         //init server
         //run server
-    }
+    // }
     // catch {
     //     //error
     // }
