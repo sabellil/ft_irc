@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mairivie <mairivie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sabellil <sabellil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 16:51:38 by mairivie          #+#    #+#             */
-/*   Updated: 2026/02/25 17:18:52 by mairivie         ###   ########.fr       */
+/*   Updated: 2026/02/25 17:23:13 by sabellil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 
 int main(int ac, char **av) {
     // try {
-        std::cout << av[0] << " <av[0] | ac> " << ac << std::endl;
+        std::cout << av[0] << "Start of server and message class branch" << ac << std::endl;
         //check argc argv
         //init signal
         //init server
