@@ -6,7 +6,7 @@
 /*   By: sabellil <sabellil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 17:25:03 by sabellil          #+#    #+#             */
-/*   Updated: 2026/02/26 14:10:52 by sabellil         ###   ########.fr       */
+/*   Updated: 2026/02/26 14:48:34 by sabellil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,4 +28,4 @@ public:
     /*getters de commandes, params et trailing en const pour proteger d'une modif*/
 
 
-}
+};

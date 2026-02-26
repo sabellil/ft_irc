@@ -6,7 +6,7 @@
 /*   By: sabellil <sabellil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 17:25:06 by sabellil          #+#    #+#             */
-/*   Updated: 2026/02/26 14:10:52 by sabellil         ###   ########.fr       */
+/*   Updated: 2026/02/26 14:56:18 by sabellil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,6 @@ private:
     std::vector<pollfd> _pollFds;
 
     std::map<int, User*>               _usersByFd;
-    std::map<std::string, User*>      _usersByNick;
+    // std::map<std::string, User*>      _usersByNick;
     std::map<std::string, Channel*>   _channels;
-}
+};
