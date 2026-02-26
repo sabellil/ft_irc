@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mairivie <mairivie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: sabellil <sabellil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 16:51:38 by mairivie          #+#    #+#             */
-/*   Updated: 2026/02/25 19:31:36 by mairivie         ###   ########.fr       */
+/*   Updated: 2026/02/26 14:31:54 by sabellil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,11 +39,29 @@ int main(int ac, char **av) {
         signal(SIGQUIT, *sigStopHandler); //ctrl + \
         //init server
         //run server
-        while(1){
-            
-        }
-    }
-    catch(const std::logic_error & error) {
-        std::cout << "Caught: " << error.what();
-    }
+    // }
+    // catch {
+    //     //error
+    // }
 }
+
+/*
+Boucle while (1)
+{
+    Lancement serveur si parsing initial OK
+    if (peut lire sur la socket) POLLIN
+        read();
+    if (peut ecrire sur la socket) POLLOUT
+        write();
+}
+*/
+
+/*
+TODO: 
+
+- Ecrire classe Serveur
+- Ecrire boucle main de sondage du serveur
+    - timeout ?
+- Lister commandes client et interpretation IRC
+- Ecrire classe Message
+*/
