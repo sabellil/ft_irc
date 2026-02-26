@@ -6,7 +6,7 @@
 /*   By: sabellil <sabellil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 16:51:38 by mairivie          #+#    #+#             */
-/*   Updated: 2026/02/26 14:31:18 by sabellil         ###   ########.fr       */
+/*   Updated: 2026/02/26 14:31:54 by sabellil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,13 +39,10 @@ int main(int ac, char **av) {
         signal(SIGQUIT, *sigStopHandler); //ctrl + \
         //init server
         //run server
-        while(1){
-            
-        }
-    }
-    catch(const std::logic_error & error) {
-        std::cout << "Caught: " << error.what();
-    }
+    // }
+    // catch {
+    //     //error
+    // }
 }
 
 /*
