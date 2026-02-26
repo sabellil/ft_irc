@@ -6,13 +6,9 @@
 /*   By: sabellil <sabellil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 16:51:38 by mairivie          #+#    #+#             */
-/*   Updated: 2026/02/25 17:23:13 by sabellil         ###   ########.fr       */
+/*   Updated: 2026/02/25 17:32:22 by sabellil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-#include <csignal>
-#include <iostream>
-#include <string>
 
 int main(int ac, char **av) {
     // try {
@@ -26,3 +22,24 @@ int main(int ac, char **av) {
     //     //error
     // }
 }
+
+/*
+Boucle while (1)
+{
+    Lancement serveur si parsing initial OK
+    if (peut lire sur la socket) POLLIN
+        read();
+    if (peut ecrire sur la socket) POLLOUT
+        write();
+}
+*/
+
+/*
+TODO: 
+
+- Ecrire classe Serveur
+- Ecrire boucle main de sondage du serveur
+    - timeout ?
+- Lister commandes client et interpretation IRC
+- Ecrire classe Message
+*/
