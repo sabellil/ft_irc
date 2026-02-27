@@ -6,9 +6,11 @@
 /*   By: sabellil <sabellil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 16:51:38 by mairivie          #+#    #+#             */
-/*   Updated: 2026/02/26 14:31:54 by sabellil         ###   ########.fr       */
+/*   Updated: 2026/02/27 12:12:11 by sabellil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+Class Server
 
 #include <csignal>
 #include <cstdlib>
@@ -36,13 +38,16 @@ int main(int ac, char **av) {
     try {
         check_arg(ac, av);
         signal(SIGINT, *sigStopHandler); // ctrl + c
-        signal(SIGQUIT, *sigStopHandler); //ctrl + \
-        //init server
-        //run server
-    // }
-    // catch {
-    //     //error
-    // }
+        signal(SIGQUIT, *sigStopHandler);
+        int port = ft_atoi(av[1]);//TO DO ajouter ft_atoi de Maddy
+        std::string password = av[2];
+        Server server(port, password);
+        server.run();
+        run server
+    }
+    catch {
+        //error
+    }
 }
 
 /*
