@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sabellil <sabellil@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/25 17:25:06 by sabellil          #+#    #+#             */
-/*   Updated: 2026/02/26 14:10:52 by sabellil         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #include <string>
 #include <vector>
@@ -32,9 +21,9 @@ private:
     bool        _running;
 
     int                 _serverFd;
-    std::vector<pollfd> _pollFds;
+    std::vector<pollfd> _pollFds;//contient fd, events reventd
 
     std::map<int, User*>               _usersByFd;
-    std::map<std::string, User*>      _usersByNick;
+    // std::map<std::string, User*>      _usersByNick;
     std::map<std::string, Channel*>   _channels;
-}
+};
