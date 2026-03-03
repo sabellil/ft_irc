@@ -32,7 +32,7 @@ private:
     bool        _running;
 
     int                 _serverFd;
-    std::vector<pollfd> _pollFds;
+    std::vector<pollfd> _pollFds;//contient fd, events reventd
 
     std::map<int, User*>               _usersByFd;
     // std::map<std::string, User*>      _usersByNick;
