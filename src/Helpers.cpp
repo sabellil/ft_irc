@@ -28,6 +28,8 @@
 //     return (int)res;
 // }
 
+
+
 void    check_arg(int ac, char **av) {
         if (ac != 3)
             throw std::logic_error("Wrong nbr of arguments. Use ./irc <port> <password>");
@@ -40,6 +42,11 @@ void    check_arg(int ac, char **av) {
         if (password.empty() || !password.find_first_of(' '))
             throw std::logic_error("Password can't be empty or with spaces");
 }
+
+// TODO: All ports below 1024 are RESERVED (unless you're the superuser)! (source guide des sockets)
+//      proprosition de restreindre les ports autorises
+//TODO: de meme pour le mot de passe, 
+//        est-ce qu'une mini-regle de 3 caracters max serait pas pertinente ?
 
 void    sigStopHandler(int signum) {
     std::cerr << "Interruption du serveur par signal " << signum << std::endl;
