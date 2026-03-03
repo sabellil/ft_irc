@@ -1,21 +1,9 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: mairivie <mairivie@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2026/01/12 14:00:22 by mairivie          #+#    #+#              #
-#    Updated: 2026/02/25 17:03:20 by mairivie         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 CPP       = c++
 CPPFLAGS  = -Wall -Wextra -Werror -std=c++98
 
 NAME = irc
 
-SRCS = main.cpp
+SRCS = main.cpp helpers.cpp
 	
 SRC_DIR = src
 SRC = $(addprefix $(SRC_DIR)/, $(SRCS))
