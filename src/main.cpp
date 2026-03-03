@@ -23,20 +23,22 @@
 //         //option check secure password (bif bof la motiv)
 // }
 
-// int main(int ac, char **av) {
-//     try {
-//         check_arg(ac, av);
-//         signal(SIGINT, *sigStopHandler); // ctrl + c
-//         signal(SIGQUIT, *sigStopHandler);
-//         int port = ft_atoi_port(av[1]);
-//         std::string password = av[2];
-//         Server server(port, password);
-//         server.run();
-//     }
-//     catch {
-//         //error
-//     }
-// }
+int main(int ac, char **av) {
+    try {
+        check_arg(ac, av);
+        signal(SIGINT, *sigStopHandler); // ctrl + c
+        signal(SIGQUIT, *sigStopHandler);
+        int port = ft_atoi_port(av[1]);
+        std::string password = av[2];
+        Server server(port, password);
+        server.run();
+    }
+    catch {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
+    return 0;
+}
 
 
 
