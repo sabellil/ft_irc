@@ -1,7 +1,7 @@
 CPP       = c++
 CPPFLAGS  = -Wall -Wextra -Werror -std=c++98
 
-NAME = irc
+NAME = ircserv
 
 SRCS = main.cpp Helpers.cpp Message.cpp Server.cpp User.cpp
 	
@@ -14,7 +14,9 @@ DEP = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.d))
 
 
 all: $(NAME)
-	@echo "-----\nAll good ! Use ./$(NAME) <port> <password> to start the program\n-----"
+	@echo "-----" 
+	@echo "All good ! Use ./$(NAME) <port> <password> to start the program "
+	@echo "-----"
 .PHONY: all
 
 $(NAME): $(OBJ)
