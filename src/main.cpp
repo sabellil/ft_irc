@@ -6,28 +6,32 @@
 #include <iostream>
 #include <string>
 #include <exception>
+#include <errno.h>
+#include <unistd.h>//close
+#include <sys/socket.h>//accept recv
+#include <iostream>
 
-// void    sigStopHandler(int signum) {
-//     std::cout << "Interruption du serveur par signal " << signum << std::endl;
-//     std::exit(signum); // exit pas dans les fonctions allowed, TODO: une sorte de ft clean close
-// }
+void    sigStopHandler(int signum) {
+    std::cout << "Interruption du serveur par signal " << signum << std::endl;
+    std::exit(signum); // exit pas dans les fonctions allowed, TODO: une sorte de ft clean close
+}
 
-// void    check_arg(int ac, char **av) {
-//         if (ac != 3)
-//             throw std::logic_error("Wrong nbr of arguments. Use ./irc <port> <password>\n");
-//         for (int i=0; i<ac; i++) {
-//             std::cout << "av[" << i << "] : " << av[i] << std::endl;
-//         }
-//         //TODO: 
-//         //pour verif port, est-ce qu'une fonction existe pour test ?
-//         //option check secure password (bif bof la motiv)
-// }
+void    check_arg(int ac, char **av) {
+        if (ac != 3)
+            throw std::logic_error("Wrong nbr of arguments. Use ./irc <port> <password>\n");
+        for (int i=0; i<ac; i++) {
+            std::cout << "av[" << i << "] : " << av[i] << std::endl;
+        }
+        //TODO: 
+        //pour verif port, est-ce qu'une fonction existe pour test ?
+        //option check secure password (bif bof la motiv)
+}
 
 int main(int ac, char **av) {
     try {
         check_arg(ac, av);
-        signal(SIGINT, *sigStopHandler); // ctrl + c
-        signal(SIGQUIT, *sigStopHandler);
+        signal(SIGINT, sigStopHandler); // ctrl + c
+        signal(SIGQUIT, sigStopHandler);
         int port = ft_atoi_port(av[1]);
         std::string password = av[2];
         Server server(port, password);
@@ -38,6 +42,21 @@ int main(int ac, char **av) {
         return 1;
     }
     return 0;
+}
+
+void Server::run()
+{
+    //init de la socket = creer la 'prise' reseau
+    //bind() = donner un port un serveur (association de la socket a une UP et un port)
+    //listen() = en mode attente d'appel
+    //une fonction pour pas que la socket soit non bloquante, a trouver dnas la liste des fonctions proposees, si rien n'est dispo
+    while(_running)
+    {
+        poll(_pollFds.data(), _pollFds.size(), -1);//timeout a revoir?
+        //analyse des events
+        //acceptation des nouveaux clients
+        //lire les clients existants
+    }
 }
 
 
