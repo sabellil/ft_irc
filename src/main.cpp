@@ -1,5 +1,8 @@
 
-#include "Helpers.hpp"
+#include "../include/Helpers.hpp"
+#include "../include/Server.hpp"
+#include "../include/User.hpp"
+#include "../include/Message.hpp"
 
 #include <csignal>
 #include <cstdlib>
@@ -37,7 +40,7 @@ int main(int ac, char **av) {
         Server server(port, password);
         server.run();
     }
-    catch {
+    catch(const std::logic_error &e) {
         std::cerr << e.what() << std::endl;
         return 1;
     }
@@ -84,29 +87,6 @@ Boucle while (1)
         write();
 }
 */
-
-
-int main(int ac, char **av)
-{
-    if (ac != 2)
-    {
-        std::cout << "Usage: ./test <port>\n";
-        return 1;
-    }
-
-    try
-    {
-        int port = ft_atoi_port(av[1]);
-        std::cout << "Valid port: " << port << std::endl;
-    }
-    catch (const std::exception& e)
-    {
-        std::cout << "Error: " << e.what();
-    }
-
-    return 0;
-}
-
 
 /*
 TODO: 
