@@ -70,7 +70,7 @@ void Server::run()
                 //remplir la structure User pour ce client
                 //ajouter son fd a pollFds
             //IF p.fd != fd du serveur + POLLIN = on a un client existant qui tente d'interargir
-                //Demarrage du parsing(p.fd) --> emporte tous les elements du client 
+                //Demarrage du parsing(p.fd) --> emporte tous les elements du client TO DO START OF PARSING
         }
     }
 }
