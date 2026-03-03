@@ -17,8 +17,8 @@ public:
     std::string                     _trailing;
 
     User*                           sender;
+    bool parse(const std::string& line);
 
     private:
     /*getters de commandes, params et trailing en const pour proteger d'une modif*/
-
 };

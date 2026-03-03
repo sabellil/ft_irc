@@ -14,7 +14,11 @@ public:
     ~Server();
 
     void run();
-
+    void onClientRead(int clientFd);
+    // void acceptClient();
+    // void disconnectClient(int clientFd);//si rien a lire = deconnexion
+    void processInputBuffer(User& user);
+    void debugFeed(User& user, const std::string& chunk);
 private:
     int         _port;
     std::string _password;
@@ -26,4 +30,6 @@ private:
     std::map<int, User*>               _usersByFd;
     // std::map<std::string, User*>      _usersByNick;
     std::map<std::string, Channel*>   _channels;
+
+
 };

@@ -30,22 +30,22 @@ void    check_arg(int ac, char **av) {
         //option check secure password (bif bof la motiv)
 }
 
-int main(int ac, char **av) {
-    try {
-        check_arg(ac, av);
-        signal(SIGINT, sigStopHandler); // ctrl + c
-        signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
-        int port = ft_atoi_port(av[1]);
-        std::string password = av[2];
-        Server server(port, password);
-        server.run();
-    }
-    catch(const std::logic_error &e) {
-        std::cerr << e.what() << std::endl;
-        return 1;
-    }
-    return 0;
-}
+// int main(int ac, char **av) {
+//     try {
+//         check_arg(ac, av);
+//         signal(SIGINT, sigStopHandler); // ctrl + c
+//         signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
+//         int port = ft_atoi_port(av[1]);
+//         std::string password = av[2];
+//         Server server(port, password);
+//         server.run();
+//     }
+//     catch(const std::logic_error &e) {
+//         std::cerr << e.what() << std::endl;
+//         return 1;
+//     }
+//     return 0;
+// }
 
 void Server::run()
 {
@@ -57,7 +57,7 @@ void Server::run()
         //le moment on on construit le serveur : _running 
     while(_running)
     {
-        poll(_pollFds.data(), _pollFds.size(), -1);//timeout a revoir?
+        poll(&_pollFds[0], _pollFds.size(), -1);//timeout a revoir?
         for (size_t i = 0; i < _pollFds.size(); ++i)//parocurir tous les descripteurs surveilles par poll
         {
             //IF aucun event sur ce fd --> next one
@@ -71,6 +71,7 @@ void Server::run()
                 //ajouter son fd a pollFds
             //IF p.fd != fd du serveur + POLLIN = on a un client existant qui tente d'interargir
                 //Demarrage du parsing(p.fd) --> emporte tous les elements du client TO DO START OF PARSING
+                // onClientRead(p.fd);
         }
     }
 }
@@ -97,3 +98,4 @@ TODO:
 - Lister commandes client et interpretation IRC
 - Ecrire classe Message
 */
+
