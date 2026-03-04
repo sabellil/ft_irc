@@ -1,11 +1,12 @@
 #ifndef HELPERS_HPP
 #define HELPERS_HPP
 
+#include "colors.hpp"
 #include <csignal>
 #include <cstdlib>
+#include <cctype>
 #include <iostream>
 #include <stdexcept>
-#include <cctype>
 
 void    sigStopHandler(int signum);
 
