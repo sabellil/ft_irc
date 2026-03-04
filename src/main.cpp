@@ -21,8 +21,8 @@ int main(int ac, char **av) {
         Server server(std::atoi(av[1]), av[2]);
         server.run();
     }
-    catch(const std::logic_error &e) {
-        std::cerr << e.what() << std::endl;
+    catch(const std::exception &e) {
+        std::cerr << RED "!! ERROR !! " << e.what() << RESET << std::endl;
         return 1;
     }
     return 0;
