@@ -53,5 +53,6 @@ void Server::processInputBuffer(User& user)
 
 void Server::debugFeed(User& user, const std::string& chunk)
 {
-
+   user.inbuf().append(chunk);
+   processInputBuffer(user);
 }
