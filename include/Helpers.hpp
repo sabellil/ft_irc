@@ -4,6 +4,8 @@
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
+#include <cctype>
 
 void    sigStopHandler(int signum);
 
