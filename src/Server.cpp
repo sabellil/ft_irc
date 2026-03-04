@@ -58,18 +58,47 @@ void Server::dispatchCommand(User& user, const Message& msg)
 
     if (cmd == "PASS")
     {
-        //handlePass(user, msg);
+        // handlePASS(user, msg); 
     }
-    else if (cmd == "")
+    else if (cmd == "NICK")
     {
-
+        // handleNICK(user, msg);
     }
-    else if (cmd == "")
+    else if (cmd == "USER")
     {
-        
+        // handleUSER(user, msg);
+    }
+    else if (cmd == "JOIN")
+    {
+        // handleJOIN(user, msg);
+    }
+    else if (cmd == "PRIVMSG")
+    {
+        // handlePRIVMSG(user, msg);
+    }
+    else if (cmd == "KICK")
+    {
+        // handleKICK(user, msg);
+    }
+    else if (cmd == "INVITE")
+    {
+        // handleINVITE(user, msg);
+    }
+    else if (cmd == "TOPIC")
+    {
+        // handleTOPIC(user, msg);
+    }
+    else if (cmd == "MODE")
+    {
+        // handleMODE(user, msg);
     }
     else
     {
-        //handleerror
+        // handleUnknown(user, msg);
     }
 }
+
+// void Server::handlePASS(User& user, const Message& msg)
+// {
+//     // TODO
+// }

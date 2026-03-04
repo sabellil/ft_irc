@@ -13,15 +13,27 @@ public:
     Server(int port, const std::string& password);
     ~Server();
 
-    void run();
-    void onClientRead(int clientFd);
-    void acceptClient();
-    void disconnectClient(int clientFd);//si rien a lire = deconnexion
-    void processInputBuffer(User& user);
+    void        run();
+    void        onClientRead(int clientFd);
+    void        acceptClient();
+    void        disconnectClient(int clientFd);//si rien a lire = deconnexion
+    void        processInputBuffer(User& user);
 private:
     int         _port;
     std::string _password;
     bool        _running;
+
+    void        dispatchCommand(User& user, const Message& msg);
+    void        handlePASS(User&, const Message&);
+    void        handleNICK(User&, const Message&);
+    void        handleUSER(User&, const Message&);
+    void        handleJOIN(User&, const Message&);
+    void        handlePRIVMSG(User&, const Message&);
+    void        handleKICK(User&, const Message&);
+    void        handleINVITE(User&, const Message&);
+    void        handleTOPIC(User&, const Message&);
+    void        handleMODE(User&, const Message&);
+    void        handleUnknown(User&, const Message&);
 
     int                 _serverFd;
     std::vector<pollfd> _pollFds;//contient fd, events reventd
