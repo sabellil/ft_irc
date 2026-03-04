@@ -49,3 +49,25 @@ void Server::processInputBuffer(User& user)
     }
 }
  
+
+void Server::dispatchCommand(User& user, const Message& msg)
+{
+    const std::string& cmd = msg._command;
+
+    if (cmd == "PASS")
+    {
+        //handlePass(user, msg);
+    }
+    else if (cmd == "")
+    {
+
+    }
+    else if (cmd == "")
+    {
+        
+    }
+    else
+    {
+        //handleerror
+    }
+}
