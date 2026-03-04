@@ -43,16 +43,8 @@ void Server::processInputBuffer(User& user)
 
         line = buf.substr(0, pos);
         buf.erase(0, pos + 2);
-        std::cout << "[LINE] " << line << std::endl;// A ENLEVE APRES TESTS
         Message msg;
-        // msg.parse(line);
-        // std::cout << "[CMD] " << msg._command << std::endl;
-        //dispatchCommand(msg); TODO
+        msg.parse(line);
+        dispatchCommand(msg); TODO
     }
-}
-
-void Server::debugFeed(User& user, const std::string& chunk)
-{
-   user.inbuf().append(chunk);
-   processInputBuffer(user);
 }
