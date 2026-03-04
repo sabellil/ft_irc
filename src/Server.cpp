@@ -16,6 +16,7 @@ Server::Server(int port, const std::string& password)
 
 Server::~Server() {}
 
+//Lit les octets envoyes par recv(), les ajoute au buffer puis declenche traitement du parsing
 void Server::onClientRead(int clientFd)
 {
     char buffer[4096];
@@ -30,6 +31,7 @@ void Server::onClientRead(int clientFd)
     processInputBuffer(*user);
 }
 
+//Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
 void Server::processInputBuffer(User& user)
 {
     std::string& buf = user.inbuf();
