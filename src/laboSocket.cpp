@@ -43,7 +43,13 @@ int main(int ac, char **av) {
         if (_run != false )
             std::cerr << "pas d'adresse correspondante dispo";
 
-        //usage chat gpt pour main qui va afficher l'adresse (recopy)
+        int sockfd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+        std::cout << "ok socket \n";
+        bind(sockfd, result->ai_addr, result->ai_addrlen);
+        std::cout << "ok bind \n";
+        connect(sockfd, result->ai_addr, result->ai_addrlen);
+        std::cout << "ok connect \n";
+////////////usage chat gpt pour main qui va afficher l'adresse (recopy)
         struct sockaddr_in * addr = (struct sockaddr_in*) result->ai_addr; 
         char ip_str[INET_ADDRSTRLEN];
 
