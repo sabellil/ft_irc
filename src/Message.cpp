@@ -8,34 +8,40 @@ Message::~Message()
 {
 }
 
-
 bool Message::parse(const std::string& line)
 {
-    clear();//TODO : vider tous les elements de Message pour repartir de 0
+    clear();//TODO
     _rawLine = line;
 
     size_t i = 0;
-    skipSpaces(line, i);//TODO, jump les eventuels espaces au debut du msg
+    skipSpaces(line, i);//TODO
 
     if (i >= line.size())
         return false;
 
-    size_t start = i;//command
+    size_t start = i;
+
     while (i < line.size() && line[i] != ' ')
         ++i;
     _command = line.substr(start, i - start);
+
     skipSpaces(line, i);
 
-    while (i < line.size())//trailing
+    while (i < line.size())
     {
-        if (line[i] == ":")
+        if (line[i] == ':')
         {
             _trailing = line.substr(i + 1);
+            break;
         }
+        start = i;
+        while (i < line.size() && line[i] != ' ')
+            ++i;
+
+        if (start < i)
+            _params.push_back(line.substr(start, i - start));
+
+        skipSpaces(line, i);
     }
-
-    //params a recuperer ici 
-
-
-
+    return true;
 }
