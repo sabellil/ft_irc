@@ -1,0 +1,153 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    note_maddy.txt                                     :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: mairivie <mairivie@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2026/02/25 18:41:47 by mairivie          #+#    #+#              #
+#    Updated: 2026/03/04 16:02:34 by mairivie         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+//avoir une methode sighandler dans la classe server 
+//permet d'avoir acces a la variable bool serveur on off
+//preference a gestion externe et methode get_status() 
+// car en cas de scaling (hors scope du projet btw) plusieurs serveurs peuvent exister en meme temps
+
+#include <csignal>
+#include <vector>
+#include <cstdlib>
+#include <iostream>
+
+//verbeux mais coherent avec le sujet : une ft signal pour chaque sig qu'on veut gerer
+
+//signal(CODE_SIGNAL, *ft_to_handle);
+
+class server {
+    private :
+        int port; //from param
+        int socket; //le fd du serveur
+        bool status_on; //init a 0 dans le constructeur
+        std::vector<int> fd_list; //liste des fd ouverts (est-ce diff de la liste des clients ?)
+        
+    public :
+
+    // void    sigStopHandler();
+
+    
+    
+};
+
+    void    sigStopHandler(int signum) {
+        std::cout << "interruption du serveur" << std::endl;
+        std::exit(signum);
+    }
+/*
+fonctions autorisees :
+signal, sigaction,
+sigemptyset, sigfillset, sigaddset, sigdelset,
+sigismember
+
+A pointer to a function. The signature of the function must be equivalent to the following: 
+extern "C" void fun(int sig);
+TODO: why extern "C" ? (check livre)
+
+pseudo code ? :
+ std::cout << interruption du serveur
+ envoyer a chaque client > crash server + clean structure
+ clean struct serveur si alloc memoire
+    exit(sig)
+	
+*/
+
+
+*******PARSING ARGUMENTS*****************************************************
+-----password doit avoir minimum 4 char 
+
+
+-----password doit avoir only char printable sans space
+tableau en bas de ce lien recap les methodes c++ pour check le type d'un char
+https://en.cppreference.com/w/cpp/string/byte/isprint
+
+isprint ? X (inclus l'espace)
+!isspace? X (DEL, NUL, sont pas check entre autre)
+
+isgraph ? YES
+https://en.cppreference.com/w/cpp/string/byte/isgraph.html
+
+
+
+README : parsing basique des arguments (nombre, port = int, password non empty)
+Implementation de gestion des signaux pour avoir des fermetures propres
+
+
+********SOCKET BIND LISTEN****************************************************
+src : https://www.gta.ufrj.br/ensino/eel878/sockets/syscalls.html
+Notes socket bind listen
+#include <sys/socket.h>
+
+
+--------socket()
+int socket(int domain, int type, int protocol);
+
+domain : PF_INET (IPv4) ou PF_INET6 (IPv6)
+type : SOCK_STREAM | SOCK_NONBLOCK
+protocol : 0
+
+domain : rappel du sujet, on doit pouvoir gerer ipv4 et v6 non ? TODO:check sujet
+
+Domain: pour le non blocking
+    s is the descriptor of listening socket. To make s as non-blocking descriptor (according to man 2 socket):
+    s = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+    src: https://stackoverflow.com/questions/65625778/accept4-blocks-though-sock-nonblock-is-set
+
+protocol 0 : Normally only a single protocol  exists  to support  a particular socket type 
+    within a given protocol family, in which case protocol can be specified as 0.
+
+NB : Check error ! On error, -1 is returned, and errno is set to indicate the error.
+    la liste des erreurs est dispo dans le man socket, mais on peut rester simple et juste check le -1
+    
+
+--------bind()
+int bind(int sockfd, struct sockaddr *my_addr, int addrlen);
+
+sockfd : file descriptor returned by the socket
+my_addr : une structure sockaddr qui contient les infos de l'addresse (port et IP)
+addrlen : sizeof(struct sockaddr) // ou sizeof(struct sockadress_in) si on choisit d'utiliser ca
+
+addrlen : taille necessaire pour stocker les infosd e l'adresse, 
+    donc coherence avec la structure my_adress qu'on utilise
+
+struct sockaddr : fiou ca a l'air complexe mais il y a l'air d'y avoir des ressources iCI 
+        https://stackoverflow.com/questions/32596553/sockaddr-structure-sys-socket-h
+        nottament l'adresse de ce man https://students.mimuw.edu.pl/SO/Linux/Kod/include/linux/socket.h.html
+        qui me donne l'info sur le prototype de la structure en question :
+            struct sockaddr {
+                unsigned short	sa_family;	/* address family, AF_xxx	*/
+                char		sa_data[14];	/* 14 bytes of protocol address	*/
+            };
+        j'ai aussi eu l'info que la structure sockadress_in est plus complete car nom des membres plus explicites.
+    TODO: chopper un comparse IRC pour demander la difference et s'il existe un truc diff en cpp 
+            parce que tout la doc que je consulte est en C
+
+NB: bind() also returns -1 on error and sets errno to the error's value.
+    pour gagner une minute de delais en cas de reutilisation d'un port, 
+    en l'autorisant a etre reutilise consignes paragraphe 4.2
+
+
+--------listen()
+int listen(int sockfd, int backlog); 
+
+sockfd : le file descriptor du socket (obtenu via socket() faut suivre un peu :D)
+backlog : 10
+
+backlog: backlog is the number of connections allowed on the incoming queue. 
+        Incoming connections are going to wait in this queue until you accept() them 
+        Most systems silently limit this number to about 20 so set to is 10 enough.
+
+NB: listen() returns -1 and sets errno on error.
+
+------
+REPRENDRE ICI AVEC ACCEPT() : https://www.gta.ufrj.br/ensino/eel878/sockets/syscalls.html
+-------

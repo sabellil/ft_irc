@@ -1,29 +1,29 @@
 #include "../include/Helpers.hpp"
 #include <stdexcept>
 
-int ft_atoi_port(const char* str)
-{
-    long res = 0;
-    int i = 0;
 
-    if (!str || !str[0])
-        throw std::logic_error("Invalid port: empty\n");
+void    check_arg(int ac, char **av) {
+        if (ac != 3)
+            throw std::logic_error("Wrong nbr of arguments. Use ./ircserv <port> <password>");
 
-    while (str[i])
-    {
-        if (str[i] < '0' || str[i] > '9')
-            throw std::logic_error("Invalid port: digits only\n");
+        int port_wanted = std::atoi(av[1]); //std::atoi return 0 si conversion impossible
+        if (port_wanted <= 0 || port_wanted > 65535)
+            throw std::logic_error("Invalid port: 1 =< port > 65535 ");
 
-        res = res * 10 + (str[i] - '0');
+        std::string password = av[2];
+        if (password.size() < 4)
+            throw std::logic_error("Password : 4 char minimum required");
 
-        if (res > 65535)
-            throw std::logic_error("Invalid port: too large\n");
-
-        i++;
-    }
-
-    if (res < 1)
-        throw std::logic_error("Invalid port: must be >= 1\n");
-
-    return (int)res;
+        for (unsigned long i = 0; i < password.size(); i++) {
+            if (isgraph(password[i]) == false)
+                throw std::logic_error("Invalid Password : only letters, symbols or digits allowed");
+        }
+        std::cout << GREEN "ARG OK" RESET << std::endl;
+        return;
 }
+
+void    sigStopHandler(int signum) {
+    std::cerr << "Interruption du serveur par signal " << signum << std::endl;
+    std::exit(signum); // exit pas dans les fonctions allowed, TODO: une sorte de ft clean close
+}
+

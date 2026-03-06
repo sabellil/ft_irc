@@ -39,8 +39,9 @@
 *.out
 *.app
 *irc
+*ircserv
 
 
 # debug information files
 *.dwo
-*.txt
+

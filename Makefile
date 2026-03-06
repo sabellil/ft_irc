@@ -1,9 +1,13 @@
 CPP       = c++
 CPPFLAGS  = -Wall -Wextra -Werror -std=c++98
 
-NAME = irc
+NAME = ircserv
 
-SRCS = main.cpp Helpers.cpp Message.cpp Server.cpp User.cpp
+SRCS = main.cpp \
+	Helpers.cpp \
+	Message.cpp \
+	Server.cpp \
+# 	User.cpp
 	
 SRC_DIR = src
 SRC = $(addprefix $(SRC_DIR)/, $(SRCS))
@@ -14,7 +18,12 @@ DEP = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.d))
 
 
 all: $(NAME)
-	@echo "-----\nAll good ! Use ./$(NAME) <port> <password> to start the program\n-----"
+	@echo "-----" 
+	@echo "All good ! Use ./$(NAME) <port> <password> to start the program "
+	@echo "<port> : number between 1 and 65535"
+	@echo "<password> : string of 4 printable char minimum (no space) "
+	@echo "Quit the program with ctrl+c or ctrl+\ "
+	@echo "-----"
 .PHONY: all
 
 $(NAME): $(OBJ)

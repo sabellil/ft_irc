@@ -4,9 +4,7 @@
 #include "../include/User.hpp"
 #include "../include/Message.hpp"
 
-#include <csignal>
-#include <cstdlib>
-#include <iostream>
+
 #include <string>
 #include <exception>
 #include <errno.h>
@@ -14,34 +12,17 @@
 #include <sys/socket.h>//accept recv
 #include <iostream>
 
-void    sigStopHandler(int signum) {
-    std::cout << "Interruption du serveur par signal " << signum << std::endl;
-    std::exit(signum); // exit pas dans les fonctions allowed, TODO: une sorte de ft clean close
-}
-
-void    check_arg(int ac, char **av) {
-        if (ac != 3)
-            throw std::logic_error("Wrong nbr of arguments. Use ./irc <port> <password>\n");
-        for (int i=0; i<ac; i++) {
-            std::cout << "av[" << i << "] : " << av[i] << std::endl;
-        }
-        //TODO: 
-        //pour verif port, est-ce qu'une fonction existe pour test ?
-        //option check secure password (bif bof la motiv)
-}
-
 int main(int ac, char **av) {
     try {
         check_arg(ac, av);
         signal(SIGINT, sigStopHandler); // ctrl + c
         signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
-        int port = ft_atoi_port(av[1]);
-        std::string password = av[2];
-        Server server(port, password);
+
+        Server server(std::atoi(av[1]), av[2]);
         server.run();
     }
-    catch(const std::logic_error &e) {
-        std::cerr << e.what() << std::endl;
+    catch(const std::exception &e) {
+        std::cerr << RED "!! ERROR !! " << e.what() << RESET << std::endl;
         return 1;
     }
     return 0;
@@ -49,6 +30,7 @@ int main(int ac, char **av) {
 
 void Server::run()
 {
+    std::cout << "Server running !\nPort: " << this->_port << "\nPassword: " << this->_password<< std::endl;
     //Creation de la sociket d'ecoute
         //init de la socket = creer la 'prise' reseau _serverFd = socket(.......) ??
         //bind() = donner un port un serveur (association de la socket a une UP et un port)
