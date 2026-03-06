@@ -6,7 +6,7 @@
 #    By: mairivie <mairivie@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/02/25 18:41:47 by mairivie          #+#    #+#              #
-#    Updated: 2026/03/04 16:02:34 by mairivie         ###   ########.fr        #
+#    Updated: 2026/03/06 17:01:08 by mairivie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -81,11 +81,31 @@ https://en.cppreference.com/w/cpp/string/byte/isgraph.html
 README : parsing basique des arguments (nombre, port = int, password non empty)
 Implementation de gestion des signaux pour avoir des fermetures propres
 
+*********MEMO DICO*****************************************************
+Port number : It’s a 16-bit number that’s like the local address for the connection.
 
 ********SOCKET BIND LISTEN****************************************************
 src : https://www.gta.ufrj.br/ensino/eel878/sockets/syscalls.html
 Notes socket bind listen
 #include <sys/socket.h>
+
+--------struct addrinfo {} (c structure)
+used to prep the socket address structures for futur uses.
+One of the firsts things to call when you intrnd yo make a connexion
+struct addrinfo {
+    int              ai_flags;     // AI_PASSIVE, AI_CANONNAME, etc.
+    int              ai_family;    // AF_INET, AF_INET6, [AF_UNSPEC] allow to use whatever IPv4 or v6
+    int              ai_socktype;  // [SOCK_STREAM], SOCK_DGRAM
+    int              ai_protocol;  // use 0 for "any"
+    size_t           ai_addrlen;   // size of ai_addr in bytes
+    struct sockaddr *ai_addr;      // struct sockaddr_in or _in6
+    char            *ai_canonname; // full canonical hostname
+
+    struct addrinfo *ai_next;      // linked list, next node
+};
+
+--------getaddrinfo()
+returns a pointer to a new linked list of these structures filled out with all the goodies you need.
 
 
 --------socket()

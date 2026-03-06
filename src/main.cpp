@@ -30,7 +30,9 @@ int main(int ac, char **av) {
 
 void Server::run()
 {
-    std::cout << "Server running !\nPort: " << this->_port << "\nPassword: " << this->_password<< std::endl;
+    std::cout << "Starting new server. \nPort: " << this->_port << "\nPassword: " << this->_password<< std::endl;
+
+
     //Creation de la sociket d'ecoute
         //init de la socket = creer la 'prise' reseau _serverFd = socket(.......) ??
         //bind() = donner un port un serveur (association de la socket a une UP et un port)
