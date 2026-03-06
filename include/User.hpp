@@ -23,16 +23,16 @@ public:
     User(int fd);
     ~User();
 
-    int getFd() const;//return le fd du client pour idenfier sa connexion
-
     std::string& inbuf() { return _inbuf; }//pour retourner le cumul des fragments de ligne recup par recv()
     std::string& outbuf() { return _outbuf; }//ce qu'on retourne au client
+    
+    int getFd() const;//return le fd du client pour idenfier sa connexion
 
     const std::string getNick() const;
     const std::string getUsername() const;
 
-    void setNick(const std::string& _nick);
-    void setUsername(const std::string& _username);
+    void setNick(const std::string& nickname);
+    void setUsername(const std::string& username);
     
     bool hasPass() const;//la commande pass a t elle ete validee?
     bool hasNick() const;//nickname valide defini?
