@@ -1,3 +1,5 @@
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
 #include <string>
 #include <vector>
@@ -18,6 +20,7 @@ public:
     void        acceptClient();
     void        disconnectClient(int clientFd);//si rien a lire = deconnexion
     void        processInputBuffer(User& user);
+
 private:
     int         _port;
     std::string _password;
@@ -44,3 +47,5 @@ private:
 
 
 };
+
+#endif

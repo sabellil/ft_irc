@@ -47,58 +47,96 @@ void Server::processInputBuffer(User& user)
         buf.erase(0, pos + 2);
         Message msg;
         msg.parse(line);
-        dispatchCommand(msg); TODO
+        if (!msg.parse(line))
+            continue;
+
+        dispatchCommand(user, msg);
     }
 }
- 
+
 
 void Server::dispatchCommand(User& user, const Message& msg)
 {
     const std::string& cmd = msg._command;
 
     if (cmd == "PASS")
-    {
-        // handlePASS(user, msg); 
-    }
+        handlePASS(user, msg);
     else if (cmd == "NICK")
-    {
-        // handleNICK(user, msg);
-    }
+        handleNICK(user, msg);
     else if (cmd == "USER")
-    {
-        // handleUSER(user, msg);
-    }
+        handleUSER(user, msg);
     else if (cmd == "JOIN")
-    {
-        // handleJOIN(user, msg);
-    }
+        handleJOIN(user, msg);
     else if (cmd == "PRIVMSG")
-    {
-        // handlePRIVMSG(user, msg);
-    }
+        handlePRIVMSG(user, msg);
     else if (cmd == "KICK")
-    {
-        // handleKICK(user, msg);
-    }
+        handleKICK(user, msg);
     else if (cmd == "INVITE")
-    {
-        // handleINVITE(user, msg);
-    }
+        handleINVITE(user, msg);
     else if (cmd == "TOPIC")
-    {
-        // handleTOPIC(user, msg);
-    }
+        handleTOPIC(user, msg);
     else if (cmd == "MODE")
-    {
-        // handleMODE(user, msg);
-    }
+        handleMODE(user, msg);
     else
-    {
-        // handleUnknown(user, msg);
-    }
+        handleUnknown(user, msg);
 }
 
-// void Server::handlePASS(User& user, const Message& msg)
-// {
-//     // TODO
-// }
+void Server::handlePASS(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}
+
+void Server::handleNICK(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}
+
+void Server::handleUSER(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}
+
+void Server::handleJOIN(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}
+
+void Server::handlePRIVMSG(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}
+
+void Server::handleKICK(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}
+
+void Server::handleINVITE(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}
+
+void Server::handleTOPIC(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}
+
+void Server::handleMODE(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}
+
+void Server::handleUnknown(User& user, const Message& msg)
+{
+    (void)user;
+    (void)msg;
+}

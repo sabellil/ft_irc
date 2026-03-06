@@ -1,7 +1,9 @@
+#ifndef USER_HPP
+#define USER_HPP
 
 #include <string>
 
-class User//ou client?
+class User
 {
 private:
     int                 _fd;//ou _clientFd ?
@@ -22,3 +24,5 @@ public:
 
     std::string& inbuf() { return _inbuf; }//pour retourner le cumul des fragments de ligne recup par recv()
 };
+
+#endif
