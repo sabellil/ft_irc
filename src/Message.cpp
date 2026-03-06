@@ -8,10 +8,24 @@ Message::~Message()
 {
 }
 
+void Message::clear()
+{
+    _raw.clear();
+    _command.clear();
+    _params.clear();
+    _trailing.clear();
+}
+
+void Message::skipSpaces(const std::string& line, size_t i)
+{
+    while (i < line.size() && line[i] == ' ')
+        ++i;
+}
+
 bool Message::parse(const std::string& line)
 {
     clear();//TODO
-    _rawLine = line;
+    _raw = line;
 
     size_t i = 0;
     skipSpaces(line, i);//TODO
