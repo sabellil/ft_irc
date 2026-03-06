@@ -1,6 +1,6 @@
 #include "../include/Message.hpp"
 
-Message::Message() : sender(0)
+Message::Message() : sender(NULL)
 {
 }
 
@@ -16,7 +16,7 @@ void Message::clear()
     _trailing.clear();
 }
 
-void Message::skipSpaces(const std::string& line, size_t i)
+void Message::skipSpaces(const std::string& line, size_t& i)
 {
     while (i < line.size() && line[i] == ' ')
         ++i;
@@ -24,21 +24,20 @@ void Message::skipSpaces(const std::string& line, size_t i)
 
 bool Message::parse(const std::string& line)
 {
-    clear();//TODO
+    clear();
     _raw = line;
 
     size_t i = 0;
-    skipSpaces(line, i);//TODO
+    skipSpaces(line, i);
 
     if (i >= line.size())
         return false;
 
     size_t start = i;
-
     while (i < line.size() && line[i] != ' ')
         ++i;
-    _command = line.substr(start, i - start);
 
+    _command = line.substr(start, i - start);
     skipSpaces(line, i);
 
     while (i < line.size())
@@ -48,6 +47,7 @@ bool Message::parse(const std::string& line)
             _trailing = line.substr(i + 1);
             break;
         }
+
         start = i;
         while (i < line.size() && line[i] != ' ')
             ++i;

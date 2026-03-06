@@ -97,3 +97,24 @@ TODO:
 - Ecrire classe Message
 */
 
+
+int main()
+{
+    Message msg;
+
+    std::string line = "PRIVMSG bob :hello";
+
+    std::cout << "INPUT: " << line << std::endl;
+
+    msg.parse(line);
+
+    std::cout << "COMMAND: " << msg._command << std::endl;
+
+    for (size_t i = 0; i < msg._params.size(); i++)
+    {
+        std::cout << "PARAM: " << msg._params[i] << std::endl;
+    }
+    std::cout << "TRAILING: " << msg._trailing << std::endl;
+
+    return 0;
+}
