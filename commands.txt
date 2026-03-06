@@ -1,0 +1,11 @@
+- authentifier --> PASS
+- nickname --> NICK 
+- username --> USER 
+- join channel --> JOIN 
+- private message/channel message --> PRIVMSG
+
+Operators command only
+- KICK
+- INVITE
+- TOPIC
+- MOVE (i t k o l)

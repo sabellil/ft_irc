@@ -7,7 +7,7 @@ SRCS = main.cpp \
 	Helpers.cpp \
 	Message.cpp \
 	Server.cpp \
-# 	User.cpp
+	User.cpp
 	
 SRC_DIR = src
 SRC = $(addprefix $(SRC_DIR)/, $(SRCS))
