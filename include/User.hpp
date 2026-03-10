@@ -39,8 +39,7 @@ public:
     bool hasUser() const;//
 
     bool isRegistered() const;//client bien enregistre sur le serveur irc?
- 
-
+    
+    void setHasNick(bool value);
 };
-
 #endif

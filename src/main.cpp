@@ -12,22 +12,48 @@
 #include <sys/socket.h>//accept recv
 #include <iostream>
 
-int main(int ac, char **av) {
-    try {
-        check_arg(ac, av);
-        signal(SIGINT, sigStopHandler); // ctrl + c
-        signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
+// int main(int ac, char **av) {
+//     try {
+//         check_arg(ac, av);
+//         signal(SIGINT, sigStopHandler); // ctrl + c
+//         signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
 
-        Server server(std::atoi(av[1]), av[2]);
-        server.run();
-    }
-    catch(const std::exception &e) {
-        std::cerr << RED "!! ERROR !! " << e.what() << RESET << std::endl;
-        return 1;
-    }
+//         Server server(std::atoi(av[1]), av[2]);
+//         server.run();
+//     }
+//     catch(const std::exception &e) {
+//         std::cerr << RED "!! ERROR !! " << e.what() << RESET << std::endl;
+//         return 1;
+//     }
+//     return 0;
+// }
+
+
+int main()
+{
+    std::cout << "It's a fake main to test my handleCMD" << std::endl;
+    Server server(6667, "pass1234");
+    User user(42);
+
+    // Message msg1;
+    // msg1.parse("PASS pass1234");
+    // server.handlePASS(user, msg1);
+
+    Message msg2;
+    msg2.parse("NICK       sara");
+    server.dispatchCommand(user, msg2);
+
+    // Message msg3;
+    // msg3.parse("USER sara 0 * :Sara BE");
+    // server.handleUSER(user, msg3);
+
+    // std::cout << "registered = " << user.isRegistered() << std::endl;
+    std::cout << "nick = " << user.getNick() << std::endl;
+    // std::cout << "username = " << user.getUsername() << std::endl;
+    // std::cout << "realname = " << user.getRealname() << std::endl;
+
     return 0;
 }
-
 void Server::run()
 {
     std::cout << "Server running !\nPort: " << this->_port << "\nPassword: " << this->_password<< std::endl;

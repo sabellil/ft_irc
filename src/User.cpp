@@ -28,3 +28,8 @@ void User::setUsername(const std::string& username)
 {
     _username = username;
 }
+
+void User::setHasNick(bool value)
+{
+    _hasNick = value;
+}

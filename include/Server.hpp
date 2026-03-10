@@ -20,15 +20,15 @@ public:
     void        acceptClient();
     void        disconnectClient(int clientFd);//si rien a lire = deconnexion
     void        processInputBuffer(User& user);
+    void        handleNICK(User&, const Message&);//TEMPORAIREMENT EN PUBLIC
+    void        dispatchCommand(User& user, const Message& msg);//TEMPORAIREMENT EN PUBLIC
 
 private:
     int         _port;
     std::string _password;
     bool        _running;
 
-    void        dispatchCommand(User& user, const Message& msg);
     void        handlePASS(User&, const Message&);
-    void        handleNICK(User&, const Message&);
     void        handleUSER(User&, const Message&);
     void        handleJOIN(User&, const Message&);
     void        handlePRIVMSG(User&, const Message&);

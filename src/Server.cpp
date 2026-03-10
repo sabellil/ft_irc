@@ -89,8 +89,16 @@ void Server::handlePASS(User& user, const Message& msg)
 
 void Server::handleNICK(User& user, const Message& msg)
 {
-    (void)user;
-    (void)msg;
+    if (msg._params.empty())
+    {
+        std::cout << "NICK: missing parameter" << std::endl;
+        return;
+    }
+
+    const std::string& newNick = msg._params[0];
+    user.setNick(newNick);
+    user.setHasNick(true);
+    std::cout << "New nick set to: " << user.getNick() << std::endl;
 }
 
 void Server::handleUSER(User& user, const Message& msg)
@@ -140,3 +148,12 @@ void Server::handleUnknown(User& user, const Message& msg)
     (void)user;
     (void)msg;
 }
+
+/*
+TO DO NEXT:
+- handleNick
+- handleUser
+- handlePass
+- tryRegister (test de pass nick et user)
+
+*/
