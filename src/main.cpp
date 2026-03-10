@@ -40,7 +40,7 @@ int main()
     // server.handlePASS(user, msg1);
 
     Message msg2;
-    msg2.parse("NICK       sara");
+    msg2.parse("nick");
     server.dispatchCommand(user, msg2);
 
     // Message msg3;

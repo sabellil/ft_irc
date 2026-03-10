@@ -1,6 +1,7 @@
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
 #include "../include/Message.hpp"
+#include "../include/Errors.hpp"
 
 #include <iostream>
 #include <sys/socket.h>//accept recv
@@ -91,11 +92,17 @@ void Server::handleNICK(User& user, const Message& msg)
 {
     if (msg._params.empty())
     {
-        std::cout << "NICK: missing parameter" << std::endl;
+        std::cout << ERR_NONICKNAMEGIVEN << " No nickname given" << std::endl;//msg temporiare, on devra renvoyer un un msg au clent via la socket plus tard pour rnevoyer :ircserv 431 * :No nickname given
         return;
     }
 
     const std::string& newNick = msg._params[0];
+    // if (!isValidNick(newNick))//TODO NEXT 1!!!!!!!!!!! <---------------------------------
+    // {
+    //     std::cout << "ERR_ERRONEUSNICKNAME" << std::endl;
+    //     return;
+    // }
+    //if to check if username already taken, a checker dans usersbynick TODO NEXT 2!!!!!!!!!!! <---------------------------------
     user.setNick(newNick);
     user.setHasNick(true);
     std::cout << "New nick set to: " << user.getNick() << std::endl;
