@@ -38,14 +38,14 @@ int main(int ac, char **av) {
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_protocol = 0;
-        hints.ai_flags = AI_PASSIVE; // adresse passive = adresse en ecoute donc adresse serveur
+        hints.ai_flags = AI_PASSIVE; // adresse passive = adresse en ecoute donc adresse serveur TODO:creuser
 
         int status = getaddrinfo(NULL, av[1], &hints, &result); 
         //pourquoi ca reprend une string ici et pas un int *suspicious* TODO:investigate
         if (status != 0 )
             throw std::logic_error("No port available. Cannot launch server. ");
 
-        int sockfd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+        int sockfd = socket(result->ai_family, result->ai_socktype, result->ai_protocol); //TODO: A creuser
         if (sockfd < 0 )
             throw std::logic_error("Fail socket. Cannot launch server. ");
         std::cout << "ok socket \n";
@@ -54,10 +54,11 @@ int main(int ac, char **av) {
             throw std::logic_error("Fail bind. Cannot launch server. ");
         std::cout << "ok bind \n";
 
-        if (listen (sockfd, 10) < 0 )
+        if (listen (sockfd, 10) < 0 ) //TODO: check impact nombre de la queu
             throw std::logic_error("deaf port. Cannot launch server. ");
         std::cout << "SERVER LISTENING \n";
 
+        //ici boucle pour creer les serveurs
         struct sockaddr_storage client_addr;
         socklen_t addr_size = sizeof(client_addr);
 
