@@ -97,14 +97,18 @@ void Server::handleNICK(User& user, const Message& msg)
     }
 
     const std::string& newNick = msg._params[0];
-    // if (!isValidNick(newNick))//TODO NEXT 1!!!!!!!!!!! <---------------------------------
-    // {
-    //     std::cout << "ERR_ERRONEUSNICKNAME" << std::endl;
-    //     return;
-    // }
-    //if to check if username already taken, a checker dans usersbynick TODO NEXT 2!!!!!!!!!!! <---------------------------------
+    if (_usersByNick.count(newNick))
+    {
+        std::cout << ERR_NICKNAMEINUSE << " Nickname already in use" << std::endl;
+        return;
+    }
+
+    if (!user.getNick().empty())//si le client a deja un username on l'erase proprement
+        _usersByNick.erase(user.getNick());
+
     user.setNick(newNick);
     user.setHasNick(true);
+    _usersByNick[newNick] = &user;//enregistrer que ce nouveau nickname appartient a cet user la
     std::cout << "New nick set to: " << user.getNick() << std::endl;
 }
 

@@ -29,31 +29,54 @@
 // }
 
 
+// int main()
+// {
+//     std::cout << "It's a fake main to test my handleCMD" << std::endl;
+//     Server server(6667, "pass1234");
+//     User user(42);
+
+//     // Message msg1;
+//     // msg1.parse("PASS pass1234");
+//     // server.handlePASS(user, msg1);
+
+//     Message msg2;
+//     msg2.parse("nick");
+//     server.dispatchCommand(user, msg2);
+
+//     // Message msg3;
+//     // msg3.parse("USER sara 0 * :Sara BE");
+//     // server.handleUSER(user, msg3);
+
+//     // std::cout << "registered = " << user.isRegistered() << std::endl;
+//     std::cout << "nick = " << user.getNick() << std::endl;
+//     // std::cout << "username = " << user.getUsername() << std::endl;
+//     // std::cout << "realname = " << user.getRealname() << std::endl;
+
+//     return 0;
+// }
+
 int main()
 {
-    std::cout << "It's a fake main to test my handleCMD" << std::endl;
+    std::cout << "Tests for handleNick" << std::endl;
+
     Server server(6667, "pass1234");
-    User user(42);
 
-    // Message msg1;
-    // msg1.parse("PASS pass1234");
-    // server.handlePASS(user, msg1);
+    User user1(1);
+    User user2(2);
 
+    Message msg1;
+    msg1.parse("NICK             m addy");
+    server.dispatchCommand(user1, msg1);
     Message msg2;
-    msg2.parse("nick");
-    server.dispatchCommand(user, msg2);
-
-    // Message msg3;
-    // msg3.parse("USER sara 0 * :Sara BE");
-    // server.handleUSER(user, msg3);
-
-    // std::cout << "registered = " << user.isRegistered() << std::endl;
-    std::cout << "nick = " << user.getNick() << std::endl;
-    // std::cout << "username = " << user.getUsername() << std::endl;
-    // std::cout << "realname = " << user.getRealname() << std::endl;
+    msg2.parse("NI CK sara");
+    server.dispatchCommand(user2, msg2);
+    
+    std::cout << "user1 nick = " << user1.getNick() << std::endl;
+    std::cout << "user2 nick = " << user2.getNick() << std::endl;
 
     return 0;
 }
+
 void Server::run()
 {
     std::cout << "Server running !\nPort: " << this->_port << "\nPassword: " << this->_password<< std::endl;

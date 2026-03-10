@@ -42,7 +42,7 @@ private:
     std::vector<pollfd> _pollFds;//contient fd, events reventd
 
     std::map<int, User*>               _usersByFd;
-    // std::map<std::string, User*>      _usersByNick;
+    std::map<std::string, User*>      _usersByNick;
     std::map<std::string, Channel*>   _channels;
 
 

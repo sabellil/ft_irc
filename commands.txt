@@ -1,5 +1,5 @@
 - authentifier --> PASS
-- nickname --> NICK 
+- nickname --> NICK OK Non case sensitive, refuses duplicates
 - username --> USER 
 - join channel --> JOIN 
 - private message/channel message --> PRIVMSG
@@ -9,3 +9,20 @@ Operators command only
 - INVITE
 - TOPIC
 - MOVE (i t k o l)
+
+
+While listening, if the server detects that a client is reaching out and if there is something to read we start parsing the client message. 
+recv() is used to received messages from a socket and a return the number of bytes received. 
+We're able to recreate the full client message through a buffer.
+
+https://man7.org/linux/man-pages/man2/recv.2.html
+
+We then parse the client message in order to identify the command, possible parameters and a possible trailing. 
+
+Once we have figured out what command the client is trying we will unsure that it is valid. 
+It is not case sensitive. We check that paramaters are being used is necessary. 
+In case we find invalid cases the socket returns an appropriate error message respecting the IRC protocol, for instance:
+ERR_NICKNAMEINUSE, ERR_NONICKNAMEGIVEN... This protocol should be used to return errors for the reste of the program : 481 ERR_NOPRIVILEGES
+313 RPL_WHOISOPERATOR
+
+https://mathieu-lemoine.developpez.com/tutoriels/irc/protocole/?page=page-5

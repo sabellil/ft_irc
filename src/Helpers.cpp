@@ -26,4 +26,3 @@ void    sigStopHandler(int signum) {
     std::cerr << "Interruption du serveur par signal " << signum << std::endl;
     std::exit(signum); // exit pas dans les fonctions allowed, TODO: une sorte de ft clean close
 }
-
