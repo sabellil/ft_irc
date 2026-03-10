@@ -3,7 +3,9 @@ CPPFLAGS  = -Wall -Wextra -Werror -std=c++98
 
 NAME = ircserv
 
-SRCS = main.cpp \
+# 	main.cpp \ 
+
+SRCS = laboSocket.cpp \
 	Helpers.cpp \
 	Message.cpp \
 	Server.cpp \

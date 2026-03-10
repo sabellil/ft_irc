@@ -27,7 +27,7 @@ int main(int ac, char **av) {
         signal(SIGINT, sigStopHandler); // ctrl + c
         signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
 
-        int port = atoi(av[1]);
+        // int port = atoi(av[1]);
         std::string password = av[2];
 
         struct addrinfo hints; //le cahier des charges de l'adresse demandee
@@ -37,26 +37,37 @@ int main(int ac, char **av) {
         memset(&hints, 0, sizeof(struct addrinfo));
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
-        hints.ai_socktype = 0;
+        hints.ai_protocol = 0;
+        hints.ai_flags = AI_PASSIVE; // adresse passive = adresse en ecoute donc adresse serveur
 
-        bool _run = getaddrinfo(NULL, av[1], &hints, &result); //pourquoi ca reprend une string ici et pas un int *suspicious*
-        if (_run != false )
-            std::cerr << "pas d'adresse correspondante dispo";
+        int status = getaddrinfo(NULL, av[1], &hints, &result); 
+        //pourquoi ca reprend une string ici et pas un int *suspicious* TODO:investigate
+        if (status != 0 )
+            throw std::logic_error("No port available. Cannot launch server. ");
 
         int sockfd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+        if (sockfd < 0 )
+            throw std::logic_error("Fail socket. Cannot launch server. ");
         std::cout << "ok socket \n";
-        bind(sockfd, result->ai_addr, result->ai_addrlen);
+
+        if (bind(sockfd, result->ai_addr, result->ai_addrlen) < 0 )
+            throw std::logic_error("Fail bind. Cannot launch server. ");
         std::cout << "ok bind \n";
-        connect(sockfd, result->ai_addr, result->ai_addrlen);
-        std::cout << "ok connect \n";
-////////////usage chat gpt pour main qui va afficher l'adresse (recopy)
-        struct sockaddr_in * addr = (struct sockaddr_in*) result->ai_addr; 
-        char ip_str[INET_ADDRSTRLEN];
 
-        inet_ntop(AF_INET, &(addr->sin_addr), ip_str, sizeof(ip_str));
+        if (listen (sockfd, 10) < 0 )
+            throw std::logic_error("deaf port. Cannot launch server. ");
+        std::cout << "SERVER LISTENING \n";
 
-        std::cout << "IP : " << ip_str << std::endl; //0.0.0.0, normal on a pas encore le reste
-        std::cout << "Port : " << ntohs(addr->sin_port) << std::endl;
+        struct sockaddr_storage client_addr;
+        socklen_t addr_size = sizeof(client_addr);
+
+        int client_fd = accept(sockfd, (struct sockaddr *)&client_addr, &addr_size);
+
+        if (client_fd < 0)
+            throw std::logic_error("fail connexion client.. ");
+        std::cout << "ok listen \n";
+
+        std::cout << GREEN "\nClient connected !!" RESET << std::endl;
 
         freeaddrinfo(result); // getaddrinfo alloue de la memoire ! ne pas oublier de la free
         
@@ -68,3 +79,28 @@ int main(int ac, char **av) {
     }
     return 0;
 }
+
+//./ircserv 6667 pass
+//nc localhost 6667
+
+
+//MAIN GPT POUR ACCEPTER PLUSIEURS CLIENTS MAIS JE VEUX COMPRENDRE
+// while (true)
+// {
+//     struct sockaddr_storage client_addr;
+//     socklen_t addr_size = sizeof(client_addr);
+
+//     int client_fd = accept(sockfd,
+//                            (struct sockaddr *)&client_addr,
+//                            &addr_size);
+
+//     if (client_fd < 0)
+//     {
+//         perror("accept");
+//         continue;
+//     }
+
+//     std::cout << "New client connected\n";
+
+//     send(client_fd, "Welcome to IRC\n", 15, 0);
+// }
