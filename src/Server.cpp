@@ -131,6 +131,12 @@ void Server::handleUSER(User& user, const Message& msg)
     std::cout << "REALNAME set to: " << user.getRealname() << std::endl;
 
     // tryRegister(user);TODO NEEEEEEEEXT
+    // est ce que haspass ? hasuser? etc
+}
+
+void Server::tryRegister(bool value)
+{
+    if ()
 }
 
 void Server::handleJOIN(User& user, const Message& msg)

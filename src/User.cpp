@@ -55,3 +55,12 @@ std::string User::getRealname() const
     return _realname;
 }
 
+bool User::isRegistered() const
+{
+    return _registered;
+}
+
+void User::setRegistered(bool value)
+{
+    _registered = value;
+}
