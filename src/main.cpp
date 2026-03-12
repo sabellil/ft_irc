@@ -12,66 +12,21 @@
 #include <sys/socket.h>//accept recv
 #include <iostream>
 
-// int main(int ac, char **av) {
-//     try {
-//         check_arg(ac, av);
-//         signal(SIGINT, sigStopHandler); // ctrl + c
-//         signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
+int main(int ac, char **av) {
+    try {
+        check_arg(ac, av);
+        signal(SIGINT, sigStopHandler); // ctrl + c
+        signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
 
-//         Server server(std::atoi(av[1]), av[2]);
-//         server.run();
-//     }
-//     catch(const std::exception &e) {
-//         std::cerr << RED "!! ERROR !! " << e.what() << RESET << std::endl;
-//         return 1;
-//     }
-//     return 0;
-// }
-
-
-
-int main()
-{
-    Server server(6667, "pass1234");
-    User user(42);
-
-    std::cout << "TEST OK" << std::endl;
-    Message msg1;
-    msg1._command = "USER";
-    msg1._params.push_back("sara");
-    msg1._params.push_back("0");
-    msg1._params.push_back("*");
-    msg1._trailing = "Sara Bellili";
-
-    server.dispatchCommand(user, msg1);
-
-    std::cout << "username after USER = " << user.getUsername() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "TEST USER DEJA SET" << std::endl;
-    Message msg2;
-    msg2._command = "USER";
-    msg2._params.push_back("autreuser");
-    msg2._params.push_back("0");
-    msg2._params.push_back("*");
-    msg2._trailing = "Autre Nom";
-
-    server.dispatchCommand(user, msg2);
-
-    std::cout << std::endl;
-
-    std::cout << "TEST manque arg" << std::endl;
-    User user2(43);
-    Message msg3;
-    msg3._command = "USER";
-    msg3._params.push_back("bob");
-    msg3._params.push_back("0");
-
-    server.dispatchCommand(user2, msg3);
-
+        Server server(std::atoi(av[1]), av[2]);
+        server.run();
+    }
+    catch(const std::exception &e) {
+        std::cerr << RED "!! ERROR !! " << e.what() << RESET << std::endl;
+        return 1;
+    }
     return 0;
 }
-
 
 void Server::run()
 {

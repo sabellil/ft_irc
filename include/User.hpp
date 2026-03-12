@@ -11,7 +11,6 @@ private:
     std::string         _nick;
     std::string         _username;
     std::string         _realname;
-
     bool                _hasPass;
     bool                _hasNick;
     bool                _hasUser;
@@ -20,6 +19,7 @@ private:
     std::string         _inbuf;//s'assurer d'aller jusqu'au \r\n et d'avoir toute la ligne
     std::string         _outbuf;
 
+
 public:
     User(int fd);
     ~User();
@@ -27,26 +27,22 @@ public:
     std::string& inbuf() { return _inbuf; }//pour retourner le cumul des fragments de ligne recup par recv()
     std::string& outbuf() { return _outbuf; }//ce qu'on retourne au client
     
-    int getFd() const;//return le fd du client pour idenfier sa connexion
-
-    const std::string getNick() const;
-    const std::string getUsername() const;
-
-    void setNick(const std::string& nickname);
-    void setUsername(const std::string& username);
+    int          getFd() const;//return le fd du client pour idenfier sa connexion
+    std::string  getNick() const;
+    std::string  getUsername() const;
+    std::string  getRealname() const;
     
-    bool hasPass() const;//la commande pass a t elle ete validee?
-    bool hasNick() const;//nickname valide defini?
-    bool hasUser() const;//
+    void         setNick(const std::string& nickname);
+    void         setUsername(const std::string& username);
+    void         setHasNick(bool value);
+    void         setRealname(const std::string& realname);
+    void         setHasUser(bool value);
 
-    bool isRegistered() const;//client bien enregistre sur le serveur irc?
-    
-    void setHasNick(bool value);
-    void        setRealname(const std::string& realname);
-    std::string getRealname() const;
-    void        setHasUser(bool value);
+    bool         hasPass() const;//la commande pass a t elle ete validee?
+    bool         hasNick() const;//nickname valide defini?
+    bool         hasUser() const;
 
-
+    bool         isRegistered() const;//client bien enregistre sur le serveur irc?
 
 };
 #endif

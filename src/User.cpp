@@ -9,12 +9,12 @@ int User::getFd() const
     return _fd;
 }
 
-const std::string User::getNick() const
+std::string User::getNick() const
 {
     return _nick;
 }
 
-const std::string User::getUsername() const
+std::string User::getUsername() const
 {
     return _username;
 }
