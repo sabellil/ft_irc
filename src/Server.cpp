@@ -55,7 +55,6 @@ void Server::processInputBuffer(User& user)
     }
 }
 
-
 void Server::dispatchCommand(User& user, const Message& msg)
 {
     const std::string& cmd = msg._command;
@@ -114,8 +113,24 @@ void Server::handleNICK(User& user, const Message& msg)
 
 void Server::handleUSER(User& user, const Message& msg)
 {
-    (void)user;
-    (void)msg;
+    if (msg._params.size() < 3 || msg._trailing.empty())
+    {
+        std::cout << "ERROR: USER needs username, mode, unused and realname" << std::endl;//TODO 1 trouver les bons msg d'erreur pour renvoyer depuis la socket proprement 
+        return;
+    }
+    if (user.hasUser())
+    {
+        std::cout << "ERROR: USER already set" << std::endl;
+        return;
+    }
+    user.setUsername(msg._params[0]);
+    user.setRealname(msg._trailing);
+    user.setHasUser(true);
+
+    std::cout << "USER set to: " << user.getUsername() << std::endl;
+    std::cout << "REALNAME set to: " << user.getRealname() << std::endl;
+
+    // tryRegister(user);TODO NEEEEEEEEXT
 }
 
 void Server::handleJOIN(User& user, const Message& msg)
@@ -162,8 +177,6 @@ void Server::handleUnknown(User& user, const Message& msg)
 
 /*
 TO DO NEXT:
-- handleNick
-- handleUser
 - handlePass
 - tryRegister (test de pass nick et user)
 

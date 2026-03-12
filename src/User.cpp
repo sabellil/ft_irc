@@ -33,3 +33,25 @@ void User::setHasNick(bool value)
 {
     _hasNick = value;
 }
+
+
+bool User::hasUser() const
+{
+    return _hasUser;
+}
+
+void User::setHasUser(bool value)
+{
+    _hasUser = value;
+}
+
+void User::setRealname(const std::string& realname)
+{
+    _realname = realname;
+}
+
+std::string User::getRealname() const
+{
+    return _realname;
+}
+

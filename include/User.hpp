@@ -10,6 +10,7 @@ private:
 
     std::string         _nick;
     std::string         _username;
+    std::string         _realname;
 
     bool                _hasPass;
     bool                _hasNick;
@@ -41,5 +42,11 @@ public:
     bool isRegistered() const;//client bien enregistre sur le serveur irc?
     
     void setHasNick(bool value);
+    void        setRealname(const std::string& realname);
+    std::string getRealname() const;
+    void        setHasUser(bool value);
+
+
+
 };
 #endif

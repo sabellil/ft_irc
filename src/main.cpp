@@ -29,53 +29,49 @@
 // }
 
 
-// int main()
-// {
-//     std::cout << "It's a fake main to test my handleCMD" << std::endl;
-//     Server server(6667, "pass1234");
-//     User user(42);
-
-//     // Message msg1;
-//     // msg1.parse("PASS pass1234");
-//     // server.handlePASS(user, msg1);
-
-//     Message msg2;
-//     msg2.parse("nick");
-//     server.dispatchCommand(user, msg2);
-
-//     // Message msg3;
-//     // msg3.parse("USER sara 0 * :Sara BE");
-//     // server.handleUSER(user, msg3);
-
-//     // std::cout << "registered = " << user.isRegistered() << std::endl;
-//     std::cout << "nick = " << user.getNick() << std::endl;
-//     // std::cout << "username = " << user.getUsername() << std::endl;
-//     // std::cout << "realname = " << user.getRealname() << std::endl;
-
-//     return 0;
-// }
 
 int main()
 {
-    std::cout << "Tests for handleNick" << std::endl;
-
     Server server(6667, "pass1234");
+    User user(42);
 
-    User user1(1);
-    User user2(2);
-
+    std::cout << "TEST OK" << std::endl;
     Message msg1;
-    msg1.parse("NICK             m addy");
-    server.dispatchCommand(user1, msg1);
+    msg1._command = "USER";
+    msg1._params.push_back("sara");
+    msg1._params.push_back("0");
+    msg1._params.push_back("*");
+    msg1._trailing = "Sara Bellili";
+
+    server.dispatchCommand(user, msg1);
+
+    std::cout << "username after USER = " << user.getUsername() << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "TEST USER DEJA SET" << std::endl;
     Message msg2;
-    msg2.parse("NI CK sara");
-    server.dispatchCommand(user2, msg2);
-    
-    std::cout << "user1 nick = " << user1.getNick() << std::endl;
-    std::cout << "user2 nick = " << user2.getNick() << std::endl;
+    msg2._command = "USER";
+    msg2._params.push_back("autreuser");
+    msg2._params.push_back("0");
+    msg2._params.push_back("*");
+    msg2._trailing = "Autre Nom";
+
+    server.dispatchCommand(user, msg2);
+
+    std::cout << std::endl;
+
+    std::cout << "TEST manque arg" << std::endl;
+    User user2(43);
+    Message msg3;
+    msg3._command = "USER";
+    msg3._params.push_back("bob");
+    msg3._params.push_back("0");
+
+    server.dispatchCommand(user2, msg3);
 
     return 0;
 }
+
 
 void Server::run()
 {
