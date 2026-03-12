@@ -208,7 +208,8 @@ void Server::handleUnknown(User& user, const Message& msg)
 
 /*
 TO DO NEXT:
-- handlePass
-- tryRegister (test de pass nick et user)
+- ajuster handlenick handlepass handleuser sur des eventuels cas a verifier
+- maj de l'affichage des erreurs pour envoie depuis la socket avec code approprie 
+- les autres handle
 
 */

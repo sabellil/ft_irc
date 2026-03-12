@@ -109,24 +109,3 @@ void Server::run()
         }
     }
 }
-
-/*
-Boucle while (1)
-{
-    Lancement serveur si parsing initial OK
-    if (peut lire sur la socket) POLLIN
-        read();
-    if (peut ecrire sur la socket) POLLOUT
-        write();
-}
-*/
-
-/*
-TODO: 
-
-- Ecrire classe Serveur
-- Ecrire boucle main de sondage du serveur (CANCELED)
-    - timeout ?
-- Lister commandes client et interpretation IRC
-- Ecrire classe Message
-*/
