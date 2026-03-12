@@ -8,16 +8,6 @@
 
 Server::Server(int port, const std::string& password)
 : _port(port),
-  _raw_port("init_int"),
-  _password(password),
-  _running(true),
-  _serverFd(-1)
-{
-}
-
-Server::Server(const std::string raw_port, const std::string& password)
-: _port(std::atoi(raw_port)),
-  _raw_port(raw_port),
   _password(password),
   _running(false),
   _serverFd(-1)

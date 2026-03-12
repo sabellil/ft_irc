@@ -11,16 +11,12 @@
 #include <unistd.h>//close
 #include <sys/socket.h>//accept recv
 #include <iostream>
-#include <sys/types.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <cstring>
 
 int main(int ac, char **av) {
     try {
         check_arg(ac, av);
         signal(SIGINT, sigStopHandler); // ctrl + c
-        signal(SIGQUIT, sigStopHandler);// ctrl + backlash
+        signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
 
         Server server(std::atoi(av[1]), av[2]);
         server.run();
@@ -34,17 +30,20 @@ int main(int ac, char **av) {
 
 void Server::run()
 {
+        // int port = atoi(av[1]);
+        std::string password = av[2];
 
         struct addrinfo hints; //le cahier des charges de l'adresse demandee
         struct addrinfo * result; //pointeur sur une liste chainee d'adresses possibles (svt on 8use la premiere)
-
+        
+        // init l'adresse a 0
         memset(&hints, 0, sizeof(struct addrinfo));
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_protocol = 0;
         hints.ai_flags = AI_PASSIVE; // adresse passive = adresse en ecoute donc adresse serveur TODO:creuser
 
-        int status = getaddrinfo(NULL, _raw_port, &hints, &result);
+        int status = getaddrinfo(NULL, av[1], &hints, &result); 
         //pourquoi ca reprend une string ici et pas un int *suspicious* TODO:investigate
         if (status != 0 )
             throw std::logic_error("No port available. Cannot launch server. ");
@@ -60,9 +59,8 @@ void Server::run()
 
         if (listen (sockfd, 10) < 0 ) //TODO: check impact nombre de la queu
             throw std::logic_error("deaf port. Cannot launch server. ");
-
-        std::cout << "Starting new server. \nPort: " << this->_port << "\nPassword: " << this->_password<< std::endl;
         std::cout << "SERVER LISTENING \n";
+    std::cout << "Starting new server. \nPort: " << this->_port << "\nPassword: " << this->_password<< std::endl;
 
 
     //Creation de la sociket d'ecoute
@@ -70,7 +68,7 @@ void Server::run()
         //bind() = donner un port un serveur (association de la socket a une UP et un port)
         //listen() = en mode attente d'appel
         //une fonction pour pas que la socket soit non bloquante, a trouver dnas la liste des fonctions proposees, si rien n'est dispo
-        //le moment on on construit le serveur : _running
+        //le moment on on construit le serveur : _running 
     while(_running)
     {
         poll(&_pollFds[0], _pollFds.size(), -1);//timeout a revoir?
@@ -104,7 +102,7 @@ Boucle while (1)
 */
 
 /*
-TODO:
+TODO: 
 
 - Ecrire classe Serveur
 - Ecrire boucle main de sondage du serveur (CANCELED)
