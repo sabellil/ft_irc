@@ -1,4 +1,3 @@
-
 #include "../include/Helpers.hpp"
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
@@ -12,22 +11,75 @@
 #include <sys/socket.h>//accept recv
 #include <iostream>
 
-int main(int ac, char **av) {
-    try {
-        check_arg(ac, av);
-        signal(SIGINT, sigStopHandler); // ctrl + c
-        signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
+// int main(int ac, char **av) {
+//     try {
+//         check_arg(ac, av);
+//         signal(SIGINT, sigStopHandler); // ctrl + c
+//         signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
 
-        Server server(std::atoi(av[1]), av[2]);
-        server.run();
-    }
-    catch(const std::exception &e) {
-        std::cerr << RED "!! ERROR !! " << e.what() << RESET << std::endl;
-        return 1;
-    }
-    return 0;
+//         int port = ft_atoi_port(av[1]);
+//         std::string password = av[2];
+
+//         Server server(port, password);
+//         server.run();
+//     }
+//     catch(const std::exception &e) {
+//         std::cerr << RED "!! ERROR !! " << e.what() << RESET << std::endl;
+//         return 1;
+//     }
+//     return 0;
+// }
+
+
+static void printUserState(const User& user)
+{
+    std::cout << "nick       = [" << user.getNick() << "]" << std::endl;
+    std::cout << "username   = [" << user.getUsername() << "]" << std::endl;
+    std::cout << "realname   = [" << user.getRealname() << "]" << std::endl;
+    std::cout << "hasPass    = " << user.hasPass() << std::endl;
+    std::cout << "hasNick    = " << user.hasNick() << std::endl;
+    std::cout << "hasUser    = " << user.hasUser() << std::endl;
+    std::cout << "registered = " << user.isRegistered() << std::endl;
+    std::cout << "\n" << std::endl;
 }
 
+int main()
+{
+    Server server(6667, "pass1234");
+    User user(42);
+
+    std::cout << "ETAT INIT" << std::endl;
+    printUserState(user);
+
+    std::cout << "\nYA QUE LE PASS" << std::endl;
+    Message msgPass;
+    msgPass._command = "PASS";
+    msgPass._params.push_back("pass1234");
+
+    server.dispatchCommand(user, msgPass);
+    printUserState(user);
+
+    std::cout << "\n PASS ET USER" << std::endl;
+    Message msgUser;
+    msgUser._command = "USER";
+    msgUser._params.push_back("sara");
+    msgUser._params.push_back("0");
+    msgUser._params.push_back("*");
+    msgUser._trailing = "Sara Bellili";
+
+    server.dispatchCommand(user, msgUser);
+    printUserState(user);
+
+    std::cout << "\nAJOUT DU NICKNAME DONC ISREGISTERED" << std::endl;
+    Message msgNick;
+    msgNick._command = "NICK";
+    msgNick._params.push_back("sara");
+
+    server.dispatchCommand(user, msgNick);
+    printUserState(user);
+
+    return 0;
+}
 void Server::run()
 {
     std::cout << "Server running !\nPort: " << this->_port << "\nPassword: " << this->_password<< std::endl;

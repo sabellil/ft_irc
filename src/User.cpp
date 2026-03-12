@@ -1,4 +1,8 @@
+#include "../include/Helpers.hpp"
+#include "../include/Server.hpp"
 #include "../include/User.hpp"
+#include "../include/Message.hpp"
+
 
 User::User(int fd) : _fd(fd), _nick(""), _username(""), _hasPass(false), _hasNick(false), _hasUser(false), _registered(false), _inbuf(""), _outbuf("") {}
 
@@ -63,4 +67,19 @@ bool User::isRegistered() const
 void User::setRegistered(bool value)
 {
     _registered = value;
+}
+
+bool User::hasNick() const
+{
+    return _hasNick;
+}
+
+bool User::hasPass() const
+{
+    return _hasPass;
+}
+
+void User::setHasPass(bool value)
+{
+    _hasPass = value;
 }

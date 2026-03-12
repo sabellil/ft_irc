@@ -60,11 +60,11 @@ void Server::dispatchCommand(User& user, const Message& msg)
     const std::string& cmd = msg._command;
 
     if (cmd == "PASS")
-        handlePASS(user, msg);
+        handlePASS(user, msg);//TODO
     else if (cmd == "NICK")
-        handleNICK(user, msg);
+        handleNICK(user, msg);//OK
     else if (cmd == "USER")
-        handleUSER(user, msg);
+        handleUSER(user, msg);//OK mais dependant de handlePass
     else if (cmd == "JOIN")
         handleJOIN(user, msg);
     else if (cmd == "PRIVMSG")
@@ -83,8 +83,24 @@ void Server::dispatchCommand(User& user, const Message& msg)
 
 void Server::handlePASS(User& user, const Message& msg)
 {
-    (void)user;
-    (void)msg;
+    if (user.isRegistered())
+    {
+        std::cout << "ERROR: already registered!" << std::endl;
+        return;
+    }
+    if (msg._params.empty())
+    {
+        std::cout << "ERROR: PASS requires a password, duh!!" << std::endl;
+        return;
+    }
+    if (msg._params[0] != _password)
+    {
+        std::cout << "ERROR: wrong password!!!!! Try again" << std::endl;
+        return;
+    }
+    user.setHasPass(true);
+    std::cout << "PASSS accepted!" << std::endl;
+    tryRegister(user);
 }
 
 void Server::handleNICK(User& user, const Message& msg)
@@ -109,6 +125,7 @@ void Server::handleNICK(User& user, const Message& msg)
     user.setHasNick(true);
     _usersByNick[newNick] = &user;//enregistrer que ce nouveau nickname appartient a cet user la
     std::cout << "New nick set to: " << user.getNick() << std::endl;
+    tryRegister(user);
 }
 
 void Server::handleUSER(User& user, const Message& msg)
@@ -130,13 +147,21 @@ void Server::handleUSER(User& user, const Message& msg)
     std::cout << "USER set to: " << user.getUsername() << std::endl;
     std::cout << "REALNAME set to: " << user.getRealname() << std::endl;
 
-    // tryRegister(user);TODO NEEEEEEEEXT
-    // est ce que haspass ? hasuser? etc
+    tryRegister(user);
 }
 
-void Server::tryRegister(bool value)
+void Server::tryRegister(User& user)
 {
-    if ()
+    if (user.isRegistered())
+        return;
+    if (!user.hasPass())
+        return;
+    if (!user.hasNick())
+        return;
+    if (!user.hasUser())
+        return;
+    user.setRegistered(true);
+    std::cout << "User registered:" << user.getNick() << "( "<< user.getUsername() <<")" << std::endl;
 }
 
 void Server::handleJOIN(User& user, const Message& msg)

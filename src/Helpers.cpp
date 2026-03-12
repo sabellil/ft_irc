@@ -1,4 +1,8 @@
 #include "../include/Helpers.hpp"
+#include "../include/Server.hpp"
+#include "../include/User.hpp"
+#include "../include/Message.hpp"
+
 #include <stdexcept>
 
 
