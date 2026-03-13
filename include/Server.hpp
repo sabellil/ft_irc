@@ -13,6 +13,7 @@ class Message;
 class Server {
 public:
     Server(int port, const std::string& password);
+    Server(char * raw_port, const std::string& password);
     ~Server();
 
     void        run();
@@ -22,6 +23,7 @@ public:
     void        processInputBuffer(User& user);
 
 private:
+    char *      _raw_port;
     int         _port;
     std::string _password;
     bool        _running;

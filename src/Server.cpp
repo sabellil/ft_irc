@@ -3,11 +3,22 @@
 #include "../include/Message.hpp"
 
 #include <iostream>
+#include <cstdlib>
 #include <sys/socket.h>//accept recv
 
 
 Server::Server(int port, const std::string& password)
-: _port(port),
+: _raw_port(NULL),
+  _port(port),
+  _password(password),
+  _running(true),
+  _serverFd(-1)
+{
+}
+
+Server::Server(char * raw_port, const std::string& password)
+: _raw_port(raw_port),
+  _port(std::atoi(raw_port)),
   _password(password),
   _running(true),
   _serverFd(-1)
