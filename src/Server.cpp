@@ -202,37 +202,43 @@ void Server::tryRegister(User& user)
 
 void Server::handleJOIN(User& user, const Message& msg)
 {
-    (void)user;
+    if (!requireRegistered(user))
+        return;
     (void)msg;
 }
 
 void Server::handlePRIVMSG(User& user, const Message& msg)
 {
-    (void)user;
+    if (!requireRegistered(user))
+        return;
     (void)msg;
 }
 
 void Server::handleKICK(User& user, const Message& msg)
 {
-    (void)user;
+    if (!requireRegistered(user))
+        return;
     (void)msg;
 }
 
 void Server::handleINVITE(User& user, const Message& msg)
 {
-    (void)user;
+    if (!requireRegistered(user))
+        return;
     (void)msg;
 }
 
 void Server::handleTOPIC(User& user, const Message& msg)
 {
-    (void)user;
+    if (!requireRegistered(user))
+        return;
     (void)msg;
 }
 
 void Server::handleMODE(User& user, const Message& msg)
 {
-    (void)user;
+    if (!requireRegistered(user))
+        return;
     (void)msg;
 }
 
@@ -256,7 +262,15 @@ void Server::sendToClient(User& user, const std::string& message)
     send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
 }
 
-
+bool Server::requireRegistered(User & user)
+{
+    if (!user.isRegistered())
+    {
+        sendToClient(user, ":ircserv 464511 " + getClientName(user) + " :You have not registered yet");
+        return false;
+    }
+    return true;
+}
 
 /*
 TO DO SEMAINE:

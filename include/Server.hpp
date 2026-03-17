@@ -47,6 +47,7 @@ private:
     void                              handleTOPIC(User&, const Message&);
     void                              handleMODE(User&, const Message&);
     void                              handleUnknown(User&, const Message&);
+    bool                              requireRegistered(User& user);
 };
 
 #endif
