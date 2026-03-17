@@ -205,6 +205,8 @@ void Server::handleJOIN(User& user, const Message& msg)
     if (!requireRegistered(user))
         return;
     (void)msg;
+
+    //Quand JOIN #salon --> verif que le salon existe, sinon pas assez de params
 }
 
 void Server::handlePRIVMSG(User& user, const Message& msg)

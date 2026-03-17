@@ -42,3 +42,7 @@ Welcome message numeric https://dd.ircdocs.horse/refs/numerics/001
 * `461` → not enough parameters
 * `462` → may not reregister
 * `464` → password incorrect
+
+
+Channels
+https://cplusplus.com/reference/set/set/
