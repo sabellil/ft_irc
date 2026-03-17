@@ -240,6 +240,8 @@ void Server::handleUnknown(User& user, const Message& msg)
 }
 
 /*
-TO DO NEXT:
+TO DO SEMAINE:
 - Systeme de renvoi des messages via la socket (fonction sendtouser() ?) 
+- Tous les handlers
+
 */

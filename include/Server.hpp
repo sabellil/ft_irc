@@ -23,7 +23,8 @@ public:
     void                              handleNICK(User&, const Message&);//TEMPORAIREMENT EN PUBLIC pour tester avec main dedie
     void                              dispatchCommand(User& user, const Message& msg);//TEMPORAIREMENT EN PUBLIC
     void                              tryRegister(User& user);
-
+    void                              sendToClient(User& user, const std::string& message);
+    
 private:
     int                               _port;
     std::string                       _password;
