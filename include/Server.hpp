@@ -27,7 +27,13 @@ private:
     int         _port;
     std::string _password;
     bool        _running;
-
+    int         _serverFd;
+    
+    std::vector<pollfd> _pollFds;//contient fd, events reventd
+    std::map<int, User*>               _usersByFd;
+    // std::map<std::string, User*>      _usersByNick;
+    std::map<std::string, Channel*>   _channels;
+    
     void        dispatchCommand(User& user, const Message& msg);
     void        handlePASS(User&, const Message&);
     void        handleNICK(User&, const Message&);
@@ -39,15 +45,7 @@ private:
     void        handleTOPIC(User&, const Message&);
     void        handleMODE(User&, const Message&);
     void        handleUnknown(User&, const Message&);
-
-    int                 _serverFd;
-    std::vector<pollfd> _pollFds;//contient fd, events reventd
     void        initServerFd();
-
-    std::map<int, User*>               _usersByFd;
-    // std::map<std::string, User*>      _usersByNick;
-    std::map<std::string, Channel*>   _channels;
-
 
 };
 
