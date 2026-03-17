@@ -46,3 +46,6 @@ Welcome message numeric https://dd.ircdocs.horse/refs/numerics/001
 
 Channels
 https://cplusplus.com/reference/set/set/
+
+We store users who are in a channel in a set container enabling us to quickly go through it with an iterator
+and avoiding duplicates. We can use insert, count and erase easily with a set container. 
