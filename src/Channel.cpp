@@ -25,14 +25,14 @@ bool Channel::hasUser(User* user) const
     return _users.count(user) > 0;
 }
 
-void Channel::addUser(*User user)
+void Channel::addUser(User* user)
 {
     _users.insert(user);
 }
 
-void Channel::removeUser(*User user)
+void Channel::removeUser(User* user)
 {
     _users.erase(user);
 }
 
-//getuser
+//getuser TODO MERCREDI 1st thing
