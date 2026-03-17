@@ -18,16 +18,30 @@ Server::Server(int port, const std::string& password)
 Server::~Server() {}
 
 //Lit les octets envoyes par recv(), les ajoute au buffer puis declenche traitement du parsing
-void Server::onClientRead(int clientFd)
+vvoid Server::onClientRead(int clientFd)
 {
     char buffer[4096];
-    int bytesRead = recv(clientFd, buffer, sizeof(buffer), 0);//je recupere des octets envoyes par le client dans un buffer alloue d'une taille max de buffer, pas d'option
-    if (bytesRead <= 0)
+
+    int bytesRead = recv(clientFd, buffer, sizeof(buffer), 0);
+    if (bytesRead == 0)//le client est deconnecte
     {
-        // disconnectClient(clientFd);TODO
+        std::cout << "Client disconnected" << std::endl;
+        // TODO: disconnectClient(clientFd);
         return;
     }
-    User* user = _usersByFd[clientFd];
+    if (bytesRead < 0)//erreur pendant la lecture de recv
+    {
+        std::cout << "ERROR: recv failed" << std::endl;
+        return;
+    }
+    std::map<int, User*>::iterator it = _usersByFd.find(clientFd);
+    if (it == _usersByFd.end() || it->second == NULL)//clientFd pas reconnu ou pas associe a un User valide
+    {
+        std::cout << "ERROR: unknown clientFd in onClientRead" << std::endl;
+        return;
+    }
+
+    User* user = it->second;
     user->inbuf().append(buffer, bytesRead);
     processInputBuffer(*user);
 }
@@ -47,7 +61,6 @@ void Server::processInputBuffer(User& user)
         line = buf.substr(0, pos);
         buf.erase(0, pos + 2);
         Message msg;
-        msg.parse(line);
         if (!msg.parse(line))
             continue;
 
@@ -228,8 +241,5 @@ void Server::handleUnknown(User& user, const Message& msg)
 
 /*
 TO DO NEXT:
-- ajuster handlenick handlepass handleuser sur des eventuels cas a verifier
-- maj de l'affichage des erreurs pour envoie depuis la socket avec code approprie 
-- les autres handle
-
+- Systeme de renvoi des messages via la socket (fonction sendtouser() ?) 
 */
