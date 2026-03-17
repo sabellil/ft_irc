@@ -24,7 +24,7 @@ public:
     void                            skipSpaces(const std::string& line, size_t& i);
     void                            clear();
 
-    private:
+private:
     /*getters de commandes, params et trailing en const pour proteger d'une modif*/
 
 };
