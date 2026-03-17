@@ -88,6 +88,11 @@ void Server::handlePASS(User& user, const Message& msg)
         std::cout << "ERROR: already registered!" << std::endl;
         return;
     }
+    if (user.hasPass())
+    {
+        std::cout << "ERROR: PASS already set. git" << std::endl;
+        return;
+    }
     if (msg._params.empty())
     {
         std::cout << "ERROR: PASS requires a password, duh!!" << std::endl;
@@ -107,17 +112,27 @@ void Server::handleNICK(User& user, const Message& msg)
 {
     if (msg._params.empty())
     {
-        std::cout << ERR_NONICKNAMEGIVEN << " No nickname given" << std::endl;//msg temporiare, on devra renvoyer un un msg au clent via la socket plus tard pour rnevoyer :ircserv 431 * :No nickname given
+        std::cout << ERR_NONICKNAMEGIVEN << "ERROR: No nickname given" << std::endl;//msg temporiare, on devra renvoyer un un msg au clent via la socket plus tard pour rnevoyer :ircserv 431 * :No nickname given
         return;
     }
 
     const std::string& newNick = msg._params[0];
-    if (_usersByNick.count(newNick))
+
+    if (newNick.empty())
     {
-        std::cout << ERR_NICKNAMEINUSE << " Nickname already in use" << std::endl;
+        std::cout << "ERROR: No nickname givem. " << std::endl;
         return;
     }
-
+    if (user.getNick() == newNick)
+    {
+        std::cout << "ERROR: Nickname unchanged. " << std::endl;
+        return;
+    }
+    if (_usersByNick.count(newNick))
+    {
+        std::cout << ERR_NICKNAMEINUSE << "ERROR: Nickname already in use" << std::endl;
+        return;
+    }
     if (!user.getNick().empty())//si le client a deja un username on l'erase proprement
         _usersByNick.erase(user.getNick());
 
@@ -130,6 +145,11 @@ void Server::handleNICK(User& user, const Message& msg)
 
 void Server::handleUSER(User& user, const Message& msg)
 {
+    if (user.isRegistered())
+    {
+        std::cout << "ERROR: USER already registered. " << std::endl;
+        return;
+    }
     if (msg._params.size() < 3 || msg._trailing.empty())
     {
         std::cout << "ERROR: USER needs username, mode, unused and realname" << std::endl;//TODO 1 trouver les bons msg d'erreur pour renvoyer depuis la socket proprement 
