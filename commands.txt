@@ -33,3 +33,12 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags);
 https://bousk.developpez.com/cours/reseau-c++/TCP/05-envoi-reception-serveur/
 https://linux.die.net/man/2/send
 
+Welcome message numeric https://dd.ircdocs.horse/refs/numerics/001
+
+* `001` → bienvenue
+* `421` → unknown command
+* `431` → no nickname given
+* `433` → nickname already in use
+* `461` → not enough parameters
+* `462` → may not reregister
+* `464` → password incorrect

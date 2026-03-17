@@ -18,7 +18,7 @@ Server::Server(int port, const std::string& password)
 Server::~Server() {}
 
 //Lit les octets envoyes par recv(), les ajoute au buffer puis declenche traitement du parsing
-vvoid Server::onClientRead(int clientFd)
+void Server::onClientRead(int clientFd)
 {
     char buffer[4096];
 
@@ -99,57 +99,51 @@ void Server::handlePASS(User& user, const Message& msg)
     if (user.isRegistered())
     {
         std::cout << "ERROR: already registered!" << std::endl;
-        sendToClient(user, ":ircserv 462" + getClientName(user) + " :You may not reregister");
+        sendToClient(user, ":ircserv 462 " + getClientName(user) + " :You may not reregister");
         return;
     }
     if (user.hasPass())
     {
-        std::cout << "ERROR: PASS already set. git" << std::endl;
-        sendToClient(user, ":ircserv 462" + getClientName(user) + " :You may not reregister");
+        std::cout << "ERROR: PASS already set." << std::endl;
+        sendToClient(user, ":ircserv 462 " + getClientName(user) + " :You may not reregister");
         return;
     }
     if (msg._params.empty())
     {
         std::cout << "ERROR: No password given!" << std::endl;
-        sendToClient(user, ":ircserv 461" + getClientName(user) + " :Not enough parameters");
-        return;
+        sendToClient(user, ":ircserv 461 " + getClientName(user) + " PASS :Not enough parameters");        return;
     }
     if (msg._params[0] != _password)
     {
         std::cout << "ERROR: wrong password!!!!! Try again" << std::endl;
-        sendToClient(user, ":ircserv 464" + getClientName(user) + " :Password incorrect");
+        sendToClient(user, ":ircserv 464 " + getClientName(user) + " :Password incorrect");
         return;
     }
     user.setHasPass(true);
-    std::cout << "PASSS accepted!" << std::endl;
+    std::cout << "PASS accepted!" << std::endl;
     tryRegister(user);
 }
 
 void Server::handleNICK(User& user, const Message& msg)
 {
-    if (msg._params.empty())
+    if (msg._params.empty() || msg._params[0].empty())
     {
-        std::cout << ERR_NONICKNAMEGIVEN << "ERROR: No nickname given" << std::endl;//msg temporiare, on devra renvoyer un un msg au clent via la socket plus tard pour rnevoyer :ircserv 431 * :No nickname given
+        std::cout << "ERROR: No nickname given" << std::endl;
+        sendToClient(user, ":ircserv 431 " + getClientName(user) + " :No nickname given");
         return;
     }
 
     const std::string& newNick = msg._params[0];
 
-    if (newNick.empty())
-    {
-        std::cout << "ERROR: No nickname givem. " << std::endl;
-        return;
-    }
     if (user.getNick() == newNick)
-    {
-        std::cout << "ERROR: Nickname unchanged. " << std::endl;
         return;
-    }
+
     if (_usersByNick.count(newNick))
     {
         std::cout << ERR_NICKNAMEINUSE << "ERROR: Nickname already in use" << std::endl;
-        return;
+        sendToClient(user, ":ircserv 433 " + getClientName(user) + " " + newNick + " :Nickname is already in use");        return;
     }
+
     if (!user.getNick().empty())//si le client a deja un username on l'erase proprement
         _usersByNick.erase(user.getNick());
 
@@ -165,18 +159,22 @@ void Server::handleUSER(User& user, const Message& msg)
     if (user.isRegistered())
     {
         std::cout << "ERROR: USER already registered. " << std::endl;
-        return;
-    }
-    if (msg._params.size() < 3 || msg._trailing.empty())
-    {
-        std::cout << "ERROR: USER needs username, mode, unused and realname" << std::endl;//TODO 1 trouver les bons msg d'erreur pour renvoyer depuis la socket proprement 
+        sendToClient(user, ":ircserv 462 " + getClientName(user) + " :You may not reregister");
         return;
     }
     if (user.hasUser())
     {
         std::cout << "ERROR: USER already set" << std::endl;
+        sendToClient(user, ":ircserv 462 " + getClientName(user) + " :You may not reregister");
         return;
     }
+    if (msg._params.size() < 3 || msg._trailing.empty())
+    {
+        std::cout << "ERROR: USER needs username, mode, unused and realname" << std::endl;//TODO 1 trouver les bons msg d'erreur pour renvoyer depuis la socket proprement 
+        sendToClient(user, ":ircserv 461 " + getClientName(user) + " :Not enough parameters");
+        return;
+    }
+
     user.setUsername(msg._params[0]);
     user.setRealname(msg._trailing);
     user.setHasUser(true);
@@ -199,6 +197,7 @@ void Server::tryRegister(User& user)
         return;
     user.setRegistered(true);
     std::cout << "User registered:" << user.getNick() << "( "<< user.getUsername() <<")" << std::endl;
+    sendToClient(user, ":ircserv 001 " + getClientName(user) + " :Welcome to the IRC server");
 }
 
 void Server::handleJOIN(User& user, const Message& msg)
@@ -239,8 +238,7 @@ void Server::handleMODE(User& user, const Message& msg)
 
 void Server::handleUnknown(User& user, const Message& msg)
 {
-    (void)user;
-    (void)msg;
+    sendToClient(user, ":ircserv 421 " + getClientName(user) + " " + msg._command + " :Unknown command");
 }
 
 std::string Server::getClientName(const User& user) const//gestion propre du renvoi de msg is suer pas registered
@@ -255,7 +253,7 @@ std::string Server::getClientName(const User& user) const//gestion propre du ren
 void Server::sendToClient(User& user, const std::string& message)
 {
     std::string fullMessage = message + "\r\n";
-    send(user.getFd, fullMessage.c_str(), fullMessage.size(), 0);
+    send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
 }
 
 
