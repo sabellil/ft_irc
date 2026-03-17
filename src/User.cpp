@@ -83,3 +83,4 @@ void User::setHasPass(bool value)
 {
     _hasPass = value;
 }
+

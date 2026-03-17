@@ -26,3 +26,10 @@ ERR_NICKNAMEINUSE, ERR_NONICKNAMEGIVEN... This protocol should be used to return
 313 RPL_WHOISOPERATOR
 
 https://mathieu-lemoine.developpez.com/tutoriels/irc/protocole/?page=page-5
+
+We send error messages with send() in order to properly send the error code to the client through the socket. 
+
+ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+https://bousk.developpez.com/cours/reseau-c++/TCP/05-envoi-reception-serveur/
+https://linux.die.net/man/2/send
+

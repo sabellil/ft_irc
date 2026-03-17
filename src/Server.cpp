@@ -108,7 +108,7 @@ void Server::handlePASS(User& user, const Message& msg)
     }
     if (msg._params.empty())
     {
-        std::cout << "ERROR: PASS requires a password, duh!!" << std::endl;
+        sendToClient(user, ":ircserv 461 PASS: Not enough parameters");
         return;
     }
     if (msg._params[0] != _password)
@@ -238,6 +238,15 @@ void Server::handleUnknown(User& user, const Message& msg)
     (void)user;
     (void)msg;
 }
+
+
+void Server::sendToClient(User& user, const std::string& message)
+{
+    std::string fullMessage = message + "\r\n";
+    send(user.getFd, fullMessage.c_str(), fullMessage.size(), 0);
+}
+
+
 
 /*
 TO DO SEMAINE:
