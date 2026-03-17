@@ -23,7 +23,9 @@ void    check_arg(int ac, char **av) {
 }
 
 void    sigStopHandler(int signum) {
-    std::cerr << "\rInterruption du serveur par signal " << signum << std::endl; // \r == le curseur revient au tout debut de la ligne (meme si des trucs sont deja ecrits, cheh le chapo C)
+    std::cerr << "\rInterruption du serveur par signal " << signum << std::endl; 
+    // \r == le curseur revient au tout debut de la ligne (meme si des trucs sont deja ecrits, cheh le chapo C)
+    
     //passer le _running a false
     //unbind le port
     //liberer la memoire du serveur s'il est lance
@@ -33,6 +35,6 @@ void    sigStopHandler(int signum) {
 
 
 
-    std::exit(signum); // exit pas dans les fonctions allowed, TODO: une sorte de ft clean close
+    std::exit(signum); // TODO: une sorte de ft clean close
 }
 
