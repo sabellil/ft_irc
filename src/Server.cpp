@@ -99,21 +99,25 @@ void Server::handlePASS(User& user, const Message& msg)
     if (user.isRegistered())
     {
         std::cout << "ERROR: already registered!" << std::endl;
+        sendToClient(user, ":ircserv 462" + getClientName(user) + " :You may not reregister");
         return;
     }
     if (user.hasPass())
     {
         std::cout << "ERROR: PASS already set. git" << std::endl;
+        sendToClient(user, ":ircserv 462" + getClientName(user) + " :You may not reregister");
         return;
     }
     if (msg._params.empty())
     {
-        sendToClient(user, ":ircserv 461 PASS: Not enough parameters");
+        std::cout << "ERROR: No password given!" << std::endl;
+        sendToClient(user, ":ircserv 461" + getClientName(user) + " :Not enough parameters");
         return;
     }
     if (msg._params[0] != _password)
     {
         std::cout << "ERROR: wrong password!!!!! Try again" << std::endl;
+        sendToClient(user, ":ircserv 464" + getClientName(user) + " :Password incorrect");
         return;
     }
     user.setHasPass(true);
@@ -239,6 +243,14 @@ void Server::handleUnknown(User& user, const Message& msg)
     (void)msg;
 }
 
+std::string Server::getClientName(const User& user) const//gestion propre du renvoi de msg is suer pas registered
+{
+    if (user.getNick().empty())
+    {
+        return "*";
+    }
+    return user.getNick();
+}
 
 void Server::sendToClient(User& user, const std::string& message)
 {

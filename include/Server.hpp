@@ -25,6 +25,7 @@ public:
     void                              tryRegister(User& user);
     void                              sendToClient(User& user, const std::string& message);
     
+
 private:
     int                               _port;
     std::string                       _password;
@@ -35,6 +36,8 @@ private:
     std::map<std::string, User*>      _usersByNick;
     std::map<std::string, Channel*>   _channels;
 
+
+    std::string                       getClientName(const User& user) const;
     void                              handlePASS(User&, const Message&);
     void                              handleUSER(User&, const Message&);
     void                              handleJOIN(User&, const Message&);
