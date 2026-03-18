@@ -42,9 +42,16 @@ void Server::onClientRead(int clientFd)
         // disconnectClient(clientFd);TODO
         return;
     }
-    User* user = _usersByFd[clientFd];
-    user->inbuf().append(buffer, bytesRead);
-    processInputBuffer(*user);
+    
+    //DEBUG
+    std::cout << "Client " << clientFd << ": " << buffer;
+    send(clientFd, "PONG\n", 5, 0);
+    //TODO:le buffer se clean pas entre plusieurs clients
+    //DEBUG
+
+    // User* user = _usersByFd[clientFd];
+    // user->inbuf().append(buffer, bytesRead);
+    // processInputBuffer(*user);
 }
 
 //Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
@@ -204,24 +211,72 @@ void Server::run()
 {
     std::cout << "Starting new server. \nPort: " << this->_port 
     << "\nPassword: " << this->_password
-    << "\nraw: " << this->_raw_port
     << std::endl;
 
     initServerFd();
     _running = true; 
-    
     std::cout << GREEN "SERVER LISTENING \n" RESET << std::endl;
+    std::cout << GREEN "SERVER LISTENING \n" RESET << std::endl;
+    std::cout << GREEN "SERVER LISTENING \n" RESET << std::endl;
+    
+    //probablement en faire une fct ou un constructeur doit exister
+    pollfd pfd_server = {_serverFd, POLLIN, 0};
+    _pollFds.push_back(pfd_server);
 
-    //TODO ajouter le fd server a pollfd 1
-    while(_running)
+    while (_running)
     {
+        poll(&_pollFds[0], _pollFds.size(), -1); // TODO: gestion d'erreur
+        // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
+
+        for (size_t i = 0; i < _pollFds.size(); ++i)
+        {
+            pollfd &p = _pollFds[i];
+            if (p.revents == 0)
+                continue; //TODO: pertinence de check meme si revents 0 ?
+            if (p.revents & (POLLERR | POLLHUP | POLLNVAL)) {
+                //TODO: gestion des erreurs et clean de fd
+                // std::cerr << "message d'erreur" << std::endl;
+                // couper la connexion+ remove fd + client
+                continue;
+            }
+            //  NOUVELLE CONNEXION (version sara pseudo code)
+            // if (p.fd == _serverFd && (p.revents & POLLIN)) { //formulation bizarre mais en gros POLLIN and co sont des masques{
+            //     int client_fd = accept(_serverFd, NULL, NULL); 
+            //     if (client_fd < 0) 
+            //         continue;
+                // créer client TODO: creation/inti de l'objet client
+                // _usersByFd[client_fd] = User(client_fd);
+
+            //  NOUVELLE CONNEXION (version maddy code)
+            if (p.fd == _serverFd && (p.revents & POLLIN)) {
+                struct sockaddr_storage client_addr; //TODO importance/utilite d'usage de la structure sockaddress
+                socklen_t addr_size = sizeof(client_addr);
         
-        // poll(&_pollFds[0], _pollFds.size(), 10);//timeout a revoir? 
-        //TODO: add un timeout valide (ca evite que les blocages bloquent infiniment) 2
-        //grosso modo poll fd c'est la liste des fd surveilles par la ft poll
+                int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);
+        
+                if (client_fd < 0)
+                    throw std::logic_error("fail connexion client.. "); 
+                //= check si une connexion est possible, et que le serveur a bien recu le fd du client
+                pollfd pfd_client = {client_fd, POLLIN, 0}; //ajout du fd client a la boucle
+                _pollFds.push_back(pfd_client);
+                std::cout << "New client connected: fd " << client_fd << std::endl;
+            }
+            //  MESSAGE CLIENT
+            else if (p.revents & POLLIN)
+            {
+                onClientRead(p.fd);
+            }
+        }
+    }
+}
+
+    // while(_running)
+    // {
+        
+        // poll(&_pollFds[0], _pollFds.size(), -1); //-1 = pas de timeout
         // std::cout << GREEN "\npoll ok !!" RESET << std::endl;
         // for (size_t i = 0; i < _pollFds.size(); ++i)//parocurir tous les descripteurs surveilles par poll
-        {
+        // {
             //IF aucun event sur ce fd --> next one 
             //IF erreur sur ce fd= connexion cassee (POLLERR POLLHUP POLLNVAL) https://man7.org/linux/man-pages/man2/poll.2.html
                 //fermer la connexion 
@@ -232,17 +287,12 @@ void Server::run()
                 //remplir la structure User pour ce client
                 //ajouter son fd a pollFds
                 //on est sur le fd du serveur, on relance un coup ce process pour check si de nouveaux clients sont la
-            struct sockaddr_storage client_addr;
-            socklen_t addr_size = sizeof(client_addr);
-    
-            int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);
-    
-            if (client_fd < 0)
-                throw std::logic_error("fail connexion client.. "); //= check si une connexion est possible, et que le serveur a bien recu le fd du client
-            std::cout << GREEN "\nNew Client connected !!" RESET << std::endl;
+
             //IF p.fd != fd du serveur + POLLIN = on a un client existant qui tente d'interargir
                 //Demarrage du parsing(p.fd) --> emporte tous les elements du client TO DO START OF PARSING
                 // onClientRead(p.fd);
-        }
-    }
-}
+//         }
+//     }
+// }
+
+

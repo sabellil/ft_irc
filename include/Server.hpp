@@ -29,10 +29,10 @@ private:
     bool        _running;
     int         _serverFd;
     
-    std::vector<pollfd> _pollFds;//contient fd, events reventd
-    std::map<int, User*>               _usersByFd;
-    // std::map<std::string, User*>      _usersByNick;
-    std::map<std::string, Channel*>   _channels;
+    std::vector<pollfd>             _pollFds;//contient fd, events reventd
+    std::map<int, User*>            _usersByFd;
+    // std::map<std::string, User*>    _usersByNick;
+    std::map<std::string, Channel*> _channels;
     
     void        dispatchCommand(User& user, const Message& msg);
     void        handlePASS(User&, const Message&);

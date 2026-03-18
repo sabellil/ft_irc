@@ -34,7 +34,7 @@ void    sigStopHandler(int signum) {
 
 
 
-
+    std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
     std::exit(signum); // TODO: une sorte de ft clean close
 }
 
