@@ -35,4 +35,7 @@ void Channel::removeUser(User* user)
     _users.erase(user);
 }
 
-//getuser TODO MERCREDI 1st thing
+const std::set<User*> Channel::getUsers() const
+{
+    return _users;
+}

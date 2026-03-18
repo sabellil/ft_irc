@@ -36,7 +36,6 @@ private:
     std::map<std::string, User*>      _usersByNick;
     std::map<std::string, Channel*>   _channels;
 
-
     std::string                       getClientName(const User& user) const;
     void                              handlePASS(User&, const Message&);
     void                              handleUSER(User&, const Message&);

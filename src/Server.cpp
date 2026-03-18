@@ -200,13 +200,51 @@ void Server::tryRegister(User& user)
     sendToClient(user, ":ircserv 001 " + getClientName(user) + " :Welcome to the IRC server");
 }
 
-void Server::handleJOIN(User& user, const Message& msg)
+void Server::handleJOIN(User& user, const Message& msg)//TODO MERCREDI 2nd thing
 {
     if (!requireRegistered(user))
         return;
-    (void)msg;
+    
+    if (msg._params.empty())
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " JOIN :Not enough parameters\r\n");
+        return; 
+    }
+    const std::string& channelName = msg._params[0];
 
-    //Quand JOIN #salon --> verif que le salon existe, sinon pas assez de params
+    if (channelName.empty() || channelName[0] != '#')
+    {
+        sendToClient(user, ":ircserv 476 " + user.getNick() + " JOIN :Bad Channel Mask\r\n");
+        return; 
+    }
+
+    Channel* channel;
+
+    if (_channels.count(channelName) == 0)
+    {
+        channel = new Channel(channelName);
+        _channels[channelName] = channel;
+    }
+    else
+    {
+        channel = _channels[channelName];
+    }
+
+    if (channel->hasUser(&user))
+        return;
+
+    channel->addUser(&user);
+    sendToClient(user, ":" + user.getNick() + "!~" + user.getUsername() + "@localhost JOIN :" + channelName + "\r\n");
+
+
+    /*
+    - verif param present
+    - verif demarre par #
+    - cree rle channel si besoin
+    - ajouter le user en question
+    - envoyer le msg JOIN
+    
+    */
 }
 
 void Server::handlePRIVMSG(User& user, const Message& msg)
