@@ -1,4 +1,8 @@
+#include "../include/Helpers.hpp"
+#include "../include/Server.hpp"
 #include "../include/User.hpp"
+#include "../include/Message.hpp"
+
 
 User::User(int fd) : _fd(fd), _nick(""), _username(""), _hasPass(false), _hasNick(false), _hasUser(false), _registered(false), _inbuf(""), _outbuf("") {}
 
@@ -9,12 +13,12 @@ int User::getFd() const
     return _fd;
 }
 
-const std::string User::getNick() const
+std::string User::getNick() const
 {
     return _nick;
 }
 
-const std::string User::getUsername() const
+std::string User::getUsername() const
 {
     return _username;
 }
@@ -28,3 +32,55 @@ void User::setUsername(const std::string& username)
 {
     _username = username;
 }
+
+void User::setHasNick(bool value)
+{
+    _hasNick = value;
+}
+
+
+bool User::hasUser() const
+{
+    return _hasUser;
+}
+
+void User::setHasUser(bool value)
+{
+    _hasUser = value;
+}
+
+void User::setRealname(const std::string& realname)
+{
+    _realname = realname;
+}
+
+std::string User::getRealname() const
+{
+    return _realname;
+}
+
+bool User::isRegistered() const
+{
+    return _registered;
+}
+
+void User::setRegistered(bool value)
+{
+    _registered = value;
+}
+
+bool User::hasNick() const
+{
+    return _hasNick;
+}
+
+bool User::hasPass() const
+{
+    return _hasPass;
+}
+
+void User::setHasPass(bool value)
+{
+    _hasPass = value;
+}
+

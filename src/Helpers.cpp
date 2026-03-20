@@ -1,4 +1,8 @@
 #include "../include/Helpers.hpp"
+#include "../include/Server.hpp"
+#include "../include/User.hpp"
+#include "../include/Message.hpp"
+
 #include <stdexcept>
 
 
@@ -37,4 +41,3 @@ void    sigStopHandler(int signum) {
     std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
     std::exit(signum); // TODO: une sorte de ft clean close
 }
-

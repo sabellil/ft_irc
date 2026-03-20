@@ -1,5 +1,9 @@
+#include "../include/Helpers.hpp"
+#include "../include/Server.hpp"
+#include "../include/User.hpp"
 #include "../include/Message.hpp"
 
+#include <cctype>
 Message::Message() : sender(NULL)
 {
 }
@@ -38,6 +42,8 @@ bool Message::parse(const std::string& line)
         ++i;
 
     _command = line.substr(start, i - start);
+    for (size_t j = 0; j < _command.size(); ++j)
+        _command[j] = std::toupper(static_cast<unsigned char>(_command[j]));
     skipSpaces(line, i);
 
     while (i < line.size())
