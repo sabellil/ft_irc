@@ -10,7 +10,7 @@ Channel::Channel(const std::string& name) : _name(name)
 {
 
 }
-
+//A update? OUI avec les differents arguments de user limit true false, etc
 Channel::~Channel()
 {
 }
@@ -123,3 +123,14 @@ void Channel::removeUserLimit()
     _hasUserLimit = false;
     _userLimit = 0;
 }
+
+const std::string& Channel::getTopic() const
+{
+    return _topic;
+}
+
+void Channel::setTopic(const std::string& topic)
+{
+    _topic = topic;
+}
+
