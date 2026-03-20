@@ -10,6 +10,10 @@
 #                                                                              #
 # **************************************************************************** #
 
+//TODO 20-Mar
+//handle error server
+//link user
+
 //avoir une methode sighandler dans la classe server 
 //permet d'avoir acces a la variable bool serveur on off
 //preference a gestion externe et methode get_status() 
