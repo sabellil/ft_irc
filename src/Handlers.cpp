@@ -39,24 +39,25 @@ void Server::handlePASS(User& user, const Message& msg)
     if (user.isRegistered())
     {
         std::cout << "ERROR: already registered!" << std::endl;
-        sendToClient(user, ":ircserv 462 " + getClientName(user) + " :You may not reregister");
+        sendToClient(user, ":ircserv 462 " + getClientName(user) + " PASS :You may not reregister");
         return;
     }
     if (user.hasPass())
     {
         std::cout << "ERROR: PASS already set." << std::endl;
-        sendToClient(user, ":ircserv 462 " + getClientName(user) + " :You may not reregister");
+        sendToClient(user, ":ircserv 462 " + getClientName(user) + " PASS :You may not reregister");
         return;
     }
     if (msg._params.empty())
     {
         std::cout << "ERROR: No password given!" << std::endl;
-        sendToClient(user, ":ircserv 461 " + getClientName(user) + " PASS :Not enough parameters");        return;
+        sendToClient(user, ":ircserv 461 " + getClientName(user) + " PASS :Not enough parameters");
+        return;
     }
     if (msg._params[0] != _password)
     {
         std::cout << "ERROR: wrong password!!!!! Try again" << std::endl;
-        sendToClient(user, ":ircserv 464 " + getClientName(user) + " :Password incorrect");
+        sendToClient(user, ":ircserv 464 " + getClientName(user) + " PASS :Password incorrect");
         return;
     }
     user.setHasPass(true);
@@ -69,7 +70,7 @@ void Server::handleNICK(User& user, const Message& msg)
     if (msg._params.empty() || msg._params[0].empty())
     {
         std::cout << "ERROR: No nickname given" << std::endl;
-        sendToClient(user, ":ircserv 431 " + getClientName(user) + " :No nickname given");
+        sendToClient(user, ":ircserv 431 " + getClientName(user) + " NICK :No nickname given");
         return;
     }
 
@@ -81,7 +82,8 @@ void Server::handleNICK(User& user, const Message& msg)
     if (_usersByNick.count(newNick))
     {
         std::cout << "ERROR: Nickname already in use" << std::endl;
-        sendToClient(user, ":ircserv 433 " + getClientName(user) + " " + newNick + " :Nickname is already in use");        return;
+        sendToClient(user, ":ircserv 433 " + getClientName(user) + " " + newNick + " :Nickname is already in use");
+        return;
     }
 
     if (!user.getNick().empty())//si le client a deja un username on l'erase proprement
@@ -99,19 +101,19 @@ void Server::handleUSER(User& user, const Message& msg)
     if (user.isRegistered())
     {
         std::cout << "ERROR: USER already registered. " << std::endl;
-        sendToClient(user, ":ircserv 462 " + getClientName(user) + " :You may not reregister");
+        sendToClient(user, ":ircserv 462 " + getClientName(user) + " USER :You may not reregister");
         return;
     }
     if (user.hasUser())
     {
         std::cout << "ERROR: USER already set" << std::endl;
-        sendToClient(user, ":ircserv 462 " + getClientName(user) + " :You may not reregister");
+        sendToClient(user, ":ircserv 462 " + getClientName(user) + " USER :You may not reregister");
         return;
     }
     if (msg._params.size() < 3 || msg._trailing.empty())
     {
         std::cout << "ERROR: USER needs username, mode, unused and realname" << std::endl;//TODO 1 trouver les bons msg d'erreur pour renvoyer depuis la socket proprement 
-        sendToClient(user, ":ircserv 461 " + getClientName(user) + " :Not enough parameters");
+        sendToClient(user, ":ircserv 461 " + getClientName(user) + " USER :Not enough parameters");
         return;
     }
 
@@ -147,24 +149,26 @@ void Server::handleJOIN(User& user, const Message& msg)
 
     if (msg._params.empty())
     {
-        sendToClient(user, ":ircserv 461 " + user.getNick() + " JOIN :Not enough parameters\r\n");
-        return; 
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " JOIN :Not enough parameters");
+        return;
     }
+
     const std::string& channelName = msg._params[0];
 
     if (channelName.empty() || channelName[0] != '#')
     {
-        sendToClient(user, ":ircserv 476 " + user.getNick() + " " + channelName + " :Bad Channel Mask\r\n");        return; 
+        sendToClient(user, ":ircserv 476 " + user.getNick() + " " + channelName + " :Bad Channel Mask");
+        return;
     }
 
     Channel* channel;
 
-    if (_channels.count(channelName) == 0)//si channel n'existe pas on le cree
+    if (_channels.count(channelName) == 0)
     {
         channel = new Channel(channelName);
         _channels[channelName] = channel;
     }
-    else//sinon on recupere celui qui existe deja
+    else
     {
         channel = _channels[channelName];
     }
@@ -173,7 +177,25 @@ void Server::handleJOIN(User& user, const Message& msg)
         return;
 
     channel->addUser(&user);
-    sendToClient(user, ":" + user.getNick() + "!~" + user.getUsername() + "@localhost JOIN :" + channelName + "\r\n");
+
+    std::string joinMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost JOIN :" + channelName;
+
+    const std::set<User*>& users = channel->getUsers();
+    for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+    {
+        sendToClient(**it, joinMsg);
+    }
+
+    std::string names;
+    for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+    {
+        if (!names.empty())
+            names += " ";
+        names += (*it)->getNick();
+    }
+
+    sendToClient(user, ":ircserv 353 " + user.getNick() + " = " + channelName + " :" + names);
+    sendToClient(user, ":ircserv 366 " + user.getNick() + " " + channelName + " :End of /NAMES list");
 }
 
 void Server::handlePRIVMSG(User& user, const Message& msg)
@@ -183,15 +205,14 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
 
     if (msg._params.empty() || msg._trailing.empty())
     {
-        sendToClient(user, ":ircserv 461 " + user.getNick() + " PRIVMSG :Not enough parameters\r\n");
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " PRIVMSG :Not enough parameters");
         return;
     }
 
     const std::string& target = msg._params[0];
     const std::string& text = msg._trailing;
 
-    std::string fullMsg = ":" + user.getNick() + "!" + user.getUsername()
-        + "@localhost PRIVMSG " + target + " :" + text + "\r\n";
+    std::string fullMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost PRIVMSG " + target + " :" + text;
 
     if (_usersByNick.count(target))
     {
@@ -203,7 +224,12 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
     if (target[0] == '#' && _channels.count(target))
     {
         Channel* channel = _channels[target];
-
+        
+        if (!channel->hasUser(&user))
+        {
+            sendToClient(user, ":ircserv 404 " + user.getNick() + " " + target + " :Cannot send to channel");
+            return;
+        }
         const std::set<User*>& users = channel->getUsers();
         for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
         {
@@ -213,7 +239,7 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
         return;
     }
 
-    sendToClient(user, ":ircserv 401 " + user.getNick() + " " + target + " :No such nick/channel\r\n");
+    sendToClient(user, ":ircserv 401 " + user.getNick() + " " + target + " PRIVMSG :No such nick/channel");
 }
 /*
 Rappel process:
@@ -267,7 +293,11 @@ std::string Server::getClientName(const User& user) const//gestion propre du ren
 void Server::sendToClient(User& user, const std::string& message)
 {
     std::string fullMessage = message + "\r\n";
-    send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
+    ssize_t bytes = send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
+    if (bytes < 0)
+    {
+        std::cerr << "Error sending message to client" << std::endl;
+    }
 }
 
 bool Server::requireRegistered(User & user)
