@@ -13,11 +13,11 @@ void Server::dispatchCommand(User& user, const Message& msg)
     const std::string& cmd = msg._command;
 
     if (cmd == "PASS")
-        handlePASS(user, msg);//TODO
+        handlePASS(user, msg);
     else if (cmd == "NICK")
-        handleNICK(user, msg);//OK
+        handleNICK(user, msg);
     else if (cmd == "USER")
-        handleUSER(user, msg);//OK mais dependant de handlePass
+        handleUSER(user, msg);
     else if (cmd == "JOIN")
         handleJOIN(user, msg);
     else if (cmd == "PRIVMSG")
@@ -274,7 +274,7 @@ bool Server::requireRegistered(User & user)
 {
     if (!user.isRegistered())
     {
-        sendToClient(user, ":ircserv 464511 " + getClientName(user) + " :You have not registered yet");
+        sendToClient(user, ":ircserv 451 " + getClientName(user) + " :You have not registered yet");
         return false;
     }
     return true;
