@@ -44,8 +44,8 @@ void Server::onClientRead(int clientFd)
     int bytesRead = recv(clientFd, buffer, sizeof(buffer), 0);
     if (bytesRead == 0)//le client est deconnecte
     {
+        disconnectClient(clientFd);
         std::cout << "Client disconnected" << std::endl;
-        // TODO: disconnectClient(clientFd);
         return;
     }
     if (bytesRead < 0)//erreur pendant la lecture de recv
@@ -60,11 +60,11 @@ void Server::onClientRead(int clientFd)
         return;
     }
     
-    // //DEBUG
-    // std::cout << "Client " << clientFd << ": " << buffer;
-    // send(clientFd, "PONG\n", 5, 0);
+    //DEBUG
+    std::cout << "Client " << clientFd << ": " << buffer;
+    send(clientFd, "PONG\n", 5, 0);
     // TODO:le buffer se clean pas entre plusieurs clients
-    // //DEBUG
+    //DEBUG
 
     User* user = _usersByFd[clientFd];
     user->inbuf().append(buffer, bytesRead);
