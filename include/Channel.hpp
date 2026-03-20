@@ -28,3 +28,9 @@ class Channel
 };
 
 #endif
+
+/*
+Completer pour avoir les membres, operateurs, topic, si salon est invite only, 
+si le topic est reserve aux ops, la key du salon, la limite dutilisateur, liste de sinvites pour INVITE)
+
+*/
