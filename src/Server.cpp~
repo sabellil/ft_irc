@@ -1,4 +1,4 @@
-#include "../include/Server.hpp"
+./#include "../include/Server.hpp"
 #include "../include/User.hpp"
 #include "../include/Message.hpp"
 #include "../include/Errors.hpp"
@@ -59,15 +59,15 @@ void Server::onClientRead(int clientFd)
         return;
     }
     
-    // //DEBUG
-    // std::cout << "Client " << clientFd << ": " << buffer;
-    // send(clientFd, "PONG\n", 5, 0);
-    // //TODO:le buffer se clean pas entre plusieurs clients
-    // //DEBUG
+    //DEBUG
+    std::cout << "Client " << clientFd << ": " << buffer;
+    send(clientFd, "PONG\n", 5, 0);
+    //TODO:le buffer se clean pas entre plusieurs clients
+    //DEBUG
 
-    User* user = _usersByFd[clientFd];
-    user->inbuf().append(buffer, bytesRead);
-    processInputBuffer(*user);
+    // User* user = _usersByFd[clientFd];
+    // user->inbuf().append(buffer, bytesRead);
+    // processInputBuffer(*user);
 }
 
 //Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
