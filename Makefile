@@ -9,7 +9,8 @@ SRCS = main.cpp \
 	Message.cpp \
 	Server.cpp \
 	User.cpp \
-	Channel.cpp
+	Channel.cpp \
+	Handlers.cpp
 	
 SRC_DIR = src
 SRC = $(addprefix $(SRC_DIR)/, $(SRCS))
