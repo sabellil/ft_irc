@@ -71,6 +71,14 @@ void Server::onClientRead(int clientFd)
     processInputBuffer(*user);
 }
 
+void    Server::disconnectClient(int clientFd) {
+        // close(clientFd);
+        // _pollFds[clientFd] = -1;
+        _usersByFd.erase(clientFd);
+        
+    
+}
+
 //Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
 void Server::processInputBuffer(User& user)
 {
