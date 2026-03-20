@@ -27,6 +27,17 @@ void    check_arg(int ac, char **av) {
 }
 
 void    sigStopHandler(int signum) {
-    std::cerr << "Interruption du serveur par signal " << signum << std::endl;
-    std::exit(signum); // exit pas dans les fonctions allowed, TODO: une sorte de ft clean close
+    std::cerr << "\rInterruption du serveur par signal " << signum << std::endl; 
+    // \r == le curseur revient au tout debut de la ligne (meme si des trucs sont deja ecrits, cheh le chapo C)
+    
+    //passer le _running a false
+    //unbind le port
+    //liberer la memoire du serveur s'il est lance
+
+            // freeaddrinfo(result); // getaddrinfo alloue de la memoire ! ne pas oublier de la free
+
+
+
+    std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
+    std::exit(signum); // TODO: une sorte de ft clean close
 }
