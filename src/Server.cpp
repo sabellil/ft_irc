@@ -271,9 +271,9 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
         }
         return;
     }
-
-
     // Cas 3 cas inconnu 
+
+    sendToClient(user, ":ircserv 401 ") + user.getNick() + " " + target + " :No such nick/channel\r\n";
 }
 
 /*
