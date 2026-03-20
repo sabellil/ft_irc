@@ -74,5 +74,7 @@ si le topic est reserve aux ops, la key du salon, la limite dutilisateur, liste 
 5. TOPIC
 
 6. MODE i t k o l
-*/
+*/ 
+
+
 
