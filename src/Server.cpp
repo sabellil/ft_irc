@@ -215,9 +215,7 @@ void Server::run()
 
     initServerFd();
     _running = true; 
-    std::cout << GREEN "SERVER LISTENING \n" RESET << std::endl;
-    std::cout << GREEN "SERVER LISTENING \n" RESET << std::endl;
-    std::cout << GREEN "SERVER LISTENING \n" RESET << std::endl;
+    std::cout << GREEN "SERVER LISTENING :" RESET << std::endl;
     
     //probablement en faire une fct ou un constructeur doit exister
     pollfd pfd_server = {_serverFd, POLLIN, 0};
