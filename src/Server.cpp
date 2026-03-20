@@ -200,11 +200,11 @@ void Server::tryRegister(User& user)
     sendToClient(user, ":ircserv 001 " + getClientName(user) + " :Welcome to the IRC server");
 }
 
-void Server::handleJOIN(User& user, const Message& msg)//TODO MERCREDI 2nd thing
+void Server::handleJOIN(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    
+
     if (msg._params.empty())
     {
         sendToClient(user, ":ircserv 461 " + user.getNick() + " JOIN :Not enough parameters\r\n");
@@ -214,18 +214,17 @@ void Server::handleJOIN(User& user, const Message& msg)//TODO MERCREDI 2nd thing
 
     if (channelName.empty() || channelName[0] != '#')
     {
-        sendToClient(user, ":ircserv 476 " + user.getNick() + " JOIN :Bad Channel Mask\r\n");
-        return; 
+        sendToClient(user, ":ircserv 476 " + user.getNick() + " " + channelName + " :Bad Channel Mask\r\n");        return; 
     }
 
     Channel* channel;
 
-    if (_channels.count(channelName) == 0)
+    if (_channels.count(channelName) == 0)//si channel n'existe pas on le cree
     {
         channel = new Channel(channelName);
         _channels[channelName] = channel;
     }
-    else
+    else//sinon on recupere celui qui existe deja
     {
         channel = _channels[channelName];
     }
@@ -235,16 +234,6 @@ void Server::handleJOIN(User& user, const Message& msg)//TODO MERCREDI 2nd thing
 
     channel->addUser(&user);
     sendToClient(user, ":" + user.getNick() + "!~" + user.getUsername() + "@localhost JOIN :" + channelName + "\r\n");
-
-
-    /*
-    - verif param present
-    - verif demarre par #
-    - cree rle channel si besoin
-    - ajouter le user en question
-    - envoyer le msg JOIN
-    
-    */
 }
 
 void Server::handlePRIVMSG(User& user, const Message& msg)
