@@ -11,6 +11,9 @@
 # **************************************************************************** #
 
 //TODO 20-Mar
+//clean git branch 
+NB: innover c'est bien, perdre du temps moins.
+un jour tu ajouteras des alias en attendant prends des notes
 //handle error server
 //link user
 
