@@ -102,3 +102,24 @@ void Channel::removeKey()
     _key.clear();
 }
 
+bool Channel::hasUserLimit() const
+{
+    return _hasUserLimit;
+}
+
+int Channel::getUserLimit() const
+{
+    return _userLimit;
+}
+
+void Channel::setUserLimit(int limit)
+{
+    _hasUserLimit = true;
+    _userLimit = limit;
+}
+
+void Channel::removeUserLimit()
+{
+    _hasUserLimit = false;
+    _userLimit = 0;
+}

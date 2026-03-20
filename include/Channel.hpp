@@ -37,6 +37,11 @@ class Channel
         void                    setKey(const std::string& key);
         void                    removeKey();
 
+        bool                    hasUserLimit() const;
+        int                     getUserLimit() const;
+        void                    setUserLimit(int limit);
+        void                    removeUserLimit();
+
     private:
         std::string             _name;
         std::set<User*>         _users;//set pour stocker mes users, eviter les doublons et verifier rqpidement si il est deja dans le channel
@@ -44,9 +49,13 @@ class Channel
         std::set<User*>         _invitedUsers;
 
         bool                    _inviteOnly;
+        bool                    _topicRestricted;
 
         bool                    _hasKey;
         std::string             _key;
+
+        int                     _userLimit;
+        bool                    _hasUserLimit;
 };
 
 #endif
