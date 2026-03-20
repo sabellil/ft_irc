@@ -240,6 +240,16 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
+    if (msg._params.empty() || msg._trailing.empty())
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " PRIVMSG: Not enough parameters\r\n");
+        return;
+    }
+    const std::string& target = msg._params[0];
+    const std::string& text = msg._trailing;
+
+    //ligne renvoyee au user target
+    std::string fullMsg= ":" + user.getNick() + "!" + user.getUsername() + "@localhost PRIVMSG " + target + ":" + text + "\r\n";
     //Verifier si trailing vide ou si param vide
     //Assigner la target
     //Assigner le msg
@@ -248,6 +258,13 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
         // Cas 2 message sur un canal
         // Cas 3 cas inconnu 
 }
+
+/*
+Rappel process:
+Le client irssi tape --> /msg mike hi whats up
+irssi envoie au serveur irc (MOI) --> PRIVMSG make :hi whats up
+je renvoie au client irssi --> :sara!user@host PRIVMSG mike: hi whats up
+*/
 
 void Server::handleKICK(User& user, const Message& msg)
 {
