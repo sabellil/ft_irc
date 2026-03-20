@@ -40,7 +40,6 @@ const std::set<User*>& Channel::getUsers() const
     return _users;
 }
 
-
 bool Channel::isOperator(User * user) const
 {
     return _operators.count(user) > 0;
@@ -56,7 +55,18 @@ void Channel::removeOperator(User* user)
     _operators.erase(user);
 }
 
-const std::set<User*?> Channel::getOperators() const
+const std::set<User*>& Channel::getOperators() const
 {
     return _operators;
 }
+
+bool Channel::isInviteOnly() const
+{
+    return _inviteOnly;
+}
+
+void Channel::setInviteOnly(bool value)
+{
+    _inviteOnly = value;
+}
+

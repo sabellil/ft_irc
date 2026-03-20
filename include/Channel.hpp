@@ -25,10 +25,18 @@ class Channel
         void                    addOperator(User* user);
         void                    removeOperator(User* user);
         const std::set<User*>&  getOperators() const;
+
+        bool                    isInviteOnly() const;
+        void                    setInviteOnly(bool value);
+
+
     private:
         std::string             _name;
         std::set<User*>         _users;//set pour stocker mes users, eviter les doublons et verifier rqpidement si il est deja dans le channel
+        std::set<User*>         _operators;
+        std::set<User*>         _invitedUsers;
 
+        bool                    _inviteOnly;
 };
 
 #endif
