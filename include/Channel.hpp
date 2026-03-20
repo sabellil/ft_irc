@@ -29,6 +29,13 @@ class Channel
         bool                    isInviteOnly() const;
         void                    setInviteOnly(bool value);
 
+        bool                    isTopicRestricted() const;
+        void                    setTopicRestricted(bool value);
+
+        bool                    hasKey() const;
+        const std::string&      getKey() const;
+        void                    setKey(const std::string& key);
+        void                    removeKey();
 
     private:
         std::string             _name;
@@ -37,6 +44,9 @@ class Channel
         std::set<User*>         _invitedUsers;
 
         bool                    _inviteOnly;
+
+        bool                    _hasKey;
+        std::string             _key;
 };
 
 #endif

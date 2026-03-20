@@ -70,3 +70,35 @@ void Channel::setInviteOnly(bool value)
     _inviteOnly = value;
 }
 
+bool Channel::isTopicRestricted() const
+{
+    return _topicRestricted;
+}
+
+void Channel::setTopicRestricted(bool value)
+{
+    _topicRestricted = value;
+}
+
+bool Channel::hasKey() const
+{
+    return _hasKey;
+}
+
+const std::string& Channel::getKey() const
+{
+    return _key;
+}
+
+void Channel::setKey(const std::string& key)
+{
+    _hasKey = true;
+    _key = key;
+}
+
+void Channel::removeKey()
+{
+    _hasKey = false;
+    _key.clear();
+}
+
