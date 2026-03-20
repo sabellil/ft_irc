@@ -178,7 +178,7 @@ void Server::run()
                     throw std::logic_error("fail connexion client.. "); 
                 //= check si une connexion est possible, et que le serveur a bien recu le fd du client
                         // créer client TODO: creation/inti de l'objet client
-                // _usersByFd[client_fd] = User(client_fd);
+                _usersByFd[client_fd] = new User(client_fd);
                 pollfd pfd_client = {client_fd, POLLIN, 0}; //ajout du fd client a la boucle
                 _pollFds.push_back(pfd_client);
                 std::cout << "New client connected: fd " << client_fd << std::endl;
