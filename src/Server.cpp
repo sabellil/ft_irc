@@ -240,7 +240,13 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    (void)msg;
+    //Verifier si trailing vide ou si param vide
+    //Assigner la target
+    //Assigner le msg
+    //Variable fullMsg a remplir
+        // Cas 1 message a un user specifique
+        // Cas 2 message sur un canal
+        // Cas 3 cas inconnu 
 }
 
 void Server::handleKICK(User& user, const Message& msg)
