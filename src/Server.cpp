@@ -250,13 +250,30 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
 
     //ligne renvoyee au user target
     std::string fullMsg= ":" + user.getNick() + "!" + user.getUsername() + "@localhost PRIVMSG " + target + ":" + text + "\r\n";
-    //Verifier si trailing vide ou si param vide
-    //Assigner la target
-    //Assigner le msg
-    //Variable fullMsg a remplir
-        // Cas 1 message a un user specifique
-        // Cas 2 message sur un canal
-        // Cas 3 cas inconnu 
+    
+    // Cas 1 message a un user specifique
+    if (_usersByNick.count(target))
+    {
+        User* targetUser = _usersByNick[target];
+        sendToClient(*targetUser, fullMsg);
+        return;
+    }
+
+    // Cas 2 message sur un canal
+    if (target[0] == "#" && _channels.count(target))
+    {
+        Channel* channel = _channels(target);
+        const std::set<User*>& users = channel->getUsers();
+        for (std::set<User*>::const::iterator it = users.begin(); it != users.end(); ++i)
+        {
+            if (*it != &user)
+                sendToClient(**it, fullMsg);
+        }
+        return;
+    }
+
+
+    // Cas 3 cas inconnu 
 }
 
 /*
@@ -326,7 +343,6 @@ bool Server::requireRegistered(User & user)
 
 /*
 TO DO SEMAINE:
-- Systeme de renvoi des messages via la socket (fonction sendtouser() ?) 
 - Tous les handlers
 
 */
