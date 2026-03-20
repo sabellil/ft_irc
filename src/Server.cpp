@@ -3,7 +3,9 @@
 #include "../include/Message.hpp"
 #include "../include/Errors.hpp"
 #include "../include/colors.hpp"
+#include "../include/Channel.hpp"
 
+#include <set>
 #include <iostream>
 #include <cstdlib>
 #include <cstring> //memset
@@ -262,18 +264,19 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
+
     if (msg._params.empty() || msg._trailing.empty())
     {
-        sendToClient(user, ":ircserv 461 " + user.getNick() + " PRIVMSG: Not enough parameters\r\n");
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " PRIVMSG :Not enough parameters\r\n");
         return;
     }
+
     const std::string& target = msg._params[0];
     const std::string& text = msg._trailing;
 
-    //ligne renvoyee au user target
-    std::string fullMsg= ":" + user.getNick() + "!" + user.getUsername() + "@localhost PRIVMSG " + target + ":" + text + "\r\n";
-    
-    // Cas 1 message a un user specifique
+    std::string fullMsg = ":" + user.getNick() + "!" + user.getUsername()
+        + "@localhost PRIVMSG " + target + " :" + text + "\r\n";
+
     if (_usersByNick.count(target))
     {
         User* targetUser = _usersByNick[target];
@@ -281,12 +284,12 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
         return;
     }
 
-    // Cas 2 message sur un canal
-    if (target[0] == "#" && _channels.count(target))
+    if (target[0] == '#' && _channels.count(target))
     {
-        Channel* channel = _channels(target);
+        Channel* channel = _channels[target];
+
         const std::set<User*>& users = channel->getUsers();
-        for (std::set<User*>::const::iterator it = users.begin(); it != users.end(); ++i)
+        for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
         {
             if (*it != &user)
                 sendToClient(**it, fullMsg);
@@ -294,10 +297,8 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
         return;
     }
 
-
-    // Cas 3 cas inconnu 
+    sendToClient(user, ":ircserv 401 " + user.getNick() + " " + target + " :No such nick/channel\r\n");
 }
-
 /*
 Rappel process:
 Le client irssi tape --> /msg mike hi whats up
@@ -363,14 +364,6 @@ bool Server::requireRegistered(User & user)
     return true;
 }
 
-/*
-TO DO SEMAINE:
-- Tous les handlers
-
-*/
-    (void)user;
-    (void)msg;
-}
 
 //DEBUG
 //std::cerr << "Checkpoint x" << std::endl;
