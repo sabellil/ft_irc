@@ -259,7 +259,15 @@ void Server::handleKICK(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    (void)msg;
+    //Verifier params KICK #channel user --> 461 not enough parameters
+    //Verifier si channel existe --> 403 no such channel
+    //Verifier si user qui kick est dans le channel --> 442 You4re not on that channel
+    //Verifier is user est ope --> 482 You're not channel operator (is_Operator())
+    //Verifier que la cible du kick existe --> 401 No such nick
+    //Verifier que la cible ets dans le channel --> 441 They aren't on that channel
+    // Si OK --> KICK
+        //envoyer a tous : @ope!user@host KICK #channel targetuser
+        //retirer le user du channel channel-->removeUser(targetuser)
 }
 
 void Server::handleINVITE(User& user, const Message& msg)
