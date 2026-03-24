@@ -162,11 +162,14 @@ void Server::handleJOIN(User& user, const Message& msg)
     }
 
     Channel* channel;
+    
+    bool    isNewChannel = false;
 
     if (_channels.count(channelName) == 0)
     {
         channel = new Channel(channelName);
         _channels[channelName] = channel;
+        isNewChannel = true;
     }
     else
     {
@@ -177,6 +180,8 @@ void Server::handleJOIN(User& user, const Message& msg)
         return;
 
     channel->addUser(&user);
+    if (isNewChannel)
+        channel->addOperator(&user);
 
     std::string joinMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost JOIN :" + channelName;
 
@@ -191,7 +196,9 @@ void Server::handleJOIN(User& user, const Message& msg)
     {
         if (!names.empty())
             names += " ";
-        names += (*it)->getNick();
+        if (channel->isOperator(*it))
+            name += "@";
+        name += (*it)->getNick();
     }
 
     sendToClient(user, ":ircserv 353 " + user.getNick() + " = " + channelName + " :" + names);
