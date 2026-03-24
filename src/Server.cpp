@@ -8,10 +8,12 @@
 #include <set>
 #include <iostream>
 #include <cstdlib>
+#include <unistd.h>
 #include <cstring> //memset
 #include <sys/socket.h>//accept recv
 #include <sys/types.h>//
 #include <netdb.h>
+#include <fcntl.h> //manip des fd (get ou set options)
 #include <arpa/inet.h> //ai_family
 
 
@@ -45,7 +47,7 @@ void Server::onClientRead(int clientFd)
     if (bytesRead == 0)//le client est deconnecte
     {
         disconnectClient(clientFd);
-        std::cout << "Client disconnected" << std::endl;
+        // std::cout << "Client disconnected" << std::endl;
         return;
     }
     if (bytesRead < 0)//erreur pendant la lecture de recv
@@ -61,7 +63,7 @@ void Server::onClientRead(int clientFd)
     }
     
     //DEBUG
-    std::cout << "Client " << clientFd << ": " << buffer ;
+    std::cout << "\rClient " << clientFd << ": " << buffer ;
     send(clientFd, "PONG\n", 5, 0);
     // TODO:le buffer se clean pas entre plusieurs clients
     //DEBUG
@@ -70,13 +72,24 @@ void Server::onClientRead(int clientFd)
     user->inbuf().append(buffer, bytesRead);
     processInputBuffer(*user);
 }
-
+ 
 void    Server::disconnectClient(int clientFd) {
-        // close(clientFd);
-        // _pollFds[clientFd] = -1;
-        _usersByFd.erase(clientFd);
+
+        //vire le fd du pollFd
+        for (std::vector<pollfd>::iterator it = _pollFds.begin(); it != _pollFds.end(); ++it) {
+
+            if ( it -> fd == clientFd) {
+                _pollFds.erase(it);
+
+                delete _usersByFd[clientFd];       
+                _usersByFd.erase(clientFd); // petit coup de menage
+
+                close(clientFd);
+                std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
+                return;
+            }
+        }
         
-    
 }
 
 //Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
@@ -173,7 +186,7 @@ void Server::run()
         {
             pollfd &p = _pollFds[i];
             if (p.revents == 0)
-                continue; //TODO: pertinence de check meme si revents 0 ?
+                continue; //TODO: pertinence de check meme si revents 0 ? => oui par securite
             if (p.revents & (POLLERR | POLLHUP | POLLNVAL)) {
                 //TODO: gestion des erreurs et clean de fd
                 // std::cerr << "message d'erreur" << std::endl;
@@ -183,19 +196,25 @@ void Server::run()
             //  NOUVELLE CONNEXION 
             if (p.fd == _serverFd && (p.revents & POLLIN)) { //formulation bizarre mais en gros POLLIN and co sont des masques
                 
-                struct sockaddr_storage client_addr; //TODO importance/utilite d'usage de la structure sockaddress
+                struct sockaddr_in client_addr; //TODO importance/utilite d'usage de la structure sockaddress
                 socklen_t addr_size = sizeof(client_addr);
                 
                 int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);
-                
                 if (client_fd < 0)
-                throw std::logic_error("fail connexion client.. "); 
-                //= check si une connexion est possible, et que le serveur a bien recu le fd du client
-                    // créer client TODO: creation/inti de l'objet client
-                // struct pollfd newPollEvent;
-                _usersByFd[client_fd] = new User(client_fd); //
-                pollfd pfd_client = {client_fd, POLLIN, 0}; //ajout du fd client a la boucle
-                _pollFds.push_back(pfd_client);
+                    throw std::logic_error("fail connexion client => accept() error "); 
+                    
+                if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
+                    throw std::logic_error("cannot setup socket as nonblock "); 
+
+                struct pollfd newFdToPoll;
+                newFdToPoll.fd = client_fd;
+                newFdToPoll.events = POLLIN;
+                newFdToPoll.revents = 0;
+
+                _usersByFd[client_fd] = new User(client_fd); //recup des infos du client from sockaddress
+                
+
+                _pollFds.push_back(newFdToPoll);
                 std::cout << "New client connected: fd " << client_fd << std::endl;
             }
             //  MESSAGE CLIENT
@@ -206,8 +225,35 @@ void Server::run()
         }
     }
 }
+//post repas
+//regarder les details de sockaddr_in et voir ce que je peux recup pour remplir mon user.
 
 
+// /* Structure describing an Internet socket address.  */
+// struct sockaddr_in
+//   {
+//     __SOCKADDR_COMMON (sin_);
+//     in_port_t sin_port;			/* Port number.  */
+//     struct in_addr sin_addr;		/* Internet address.  */
+
+//     /* Pad to size of `struct sockaddr'.  */
+//     unsigned char sin_zero[sizeof (struct sockaddr)
+// 			   - __SOCKADDR_COMMON_SIZE
+// 			   - sizeof (in_port_t)
+// 			   - sizeof (struct in_addr)];
+//   };
+
+// #if !__USE_KERNEL_IPV6_DEFS
+// /* Ditto, for IPv6.  */
+// struct sockaddr_in6
+//   {
+//     __SOCKADDR_COMMON (sin6_);
+//     in_port_t sin6_port;	/* Transport layer port # */
+//     uint32_t sin6_flowinfo;	/* IPv6 flow information */
+//     struct in6_addr sin6_addr;	/* IPv6 address */
+//     uint32_t sin6_scope_id;	/* IPv6 scope-id */
+//   };
+// #endif /* !__USE_KERNEL_IPV6_DEFS */
 
     // while(_running)
     // {
