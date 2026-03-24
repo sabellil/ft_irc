@@ -285,8 +285,26 @@ void Server::handleKICK(User& user, const Message& msg)
         return;
     }
     //Verifier is user est ope --> 482 You're not channel operator (is_Operator())
+    if (!channel->isOperator(&user))
+    {
+        sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
+        return;
+    }
+
+    User* targetUser = _usersByNick[targetNick];
     //Verifier que la cible du kick existe --> 401 No such nick
+    if (_usersByNick.count(targetNick) == 0)
+    {
+        sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " :No such nick");
+        return;
+    }
+
     //Verifier que la cible ets dans le channel --> 441 They aren't on that channel
+    if (!channel->hasUser(targetUser))
+    {
+        sendToClient(user, ":ircserv 441 " + user.getNick() + " " + targetNick + " " + channelName + " :They aren't on that channel");
+        return;
+    }
     // Si OK --> KICK
         //envoyer a tous : @ope!user@host KICK #channel targetuser
         //retirer le user du channel channel-->removeUser(targetuser)
