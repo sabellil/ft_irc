@@ -28,6 +28,9 @@ class Channel
 
         bool                    isInviteOnly() const;
         void                    setInviteOnly(bool value);
+        bool                    isInvited(User* user) const;
+        void                    addInvite(User* user);
+        void                    removeUserLimit(User* user);
 
         bool                    isTopicRestricted() const;
         void                    setTopicRestricted(bool value);
