@@ -134,3 +134,4 @@ void Channel::setTopic(const std::string& topic)
     _topic = topic;
 }
 
+//invites
