@@ -61,7 +61,7 @@ void Server::onClientRead(int clientFd)
     }
     
     //DEBUG
-    std::cout << "Client " << clientFd << ": " << buffer;
+    std::cout << "Client " << clientFd << ": " << buffer ;
     send(clientFd, "PONG\n", 5, 0);
     // TODO:le buffer se clean pas entre plusieurs clients
     //DEBUG
@@ -155,8 +155,13 @@ void Server::run()
     _running = true; 
     std::cout << GREEN "SERVER LISTENING :" RESET << std::endl;
     
-    //probablement en faire une fct ou un constructeur doit exister
-    pollfd pfd_server = {_serverFd, POLLIN, 0};
+    //    struct pollfd {
+    //        int   fd;         /* file descriptor */
+    //        short events;     /* requested events */
+    //        short revents;    /* returned events */
+    //    };
+    // MEMO : pollfd est une structure C, pas un objet CPP
+    pollfd pfd_server = {this->_serverFd, POLLIN, 0};
     _pollFds.push_back(pfd_server);
 
     while (_running)
@@ -177,16 +182,18 @@ void Server::run()
             }
             //  NOUVELLE CONNEXION 
             if (p.fd == _serverFd && (p.revents & POLLIN)) { //formulation bizarre mais en gros POLLIN and co sont des masques
+                
                 struct sockaddr_storage client_addr; //TODO importance/utilite d'usage de la structure sockaddress
                 socklen_t addr_size = sizeof(client_addr);
-        
+                
                 int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);
-        
+                
                 if (client_fd < 0)
-                    throw std::logic_error("fail connexion client.. "); 
+                throw std::logic_error("fail connexion client.. "); 
                 //= check si une connexion est possible, et que le serveur a bien recu le fd du client
-                        // créer client TODO: creation/inti de l'objet client
-                _usersByFd[client_fd] = new User(client_fd);
+                    // créer client TODO: creation/inti de l'objet client
+                // struct pollfd newPollEvent;
+                _usersByFd[client_fd] = new User(client_fd); //
                 pollfd pfd_client = {client_fd, POLLIN, 0}; //ajout du fd client a la boucle
                 _pollFds.push_back(pfd_client);
                 std::cout << "New client connected: fd " << client_fd << std::endl;
@@ -199,6 +206,8 @@ void Server::run()
         }
     }
 }
+
+
 
     // while(_running)
     // {

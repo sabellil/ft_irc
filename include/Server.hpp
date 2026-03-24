@@ -28,7 +28,7 @@ public:
     
 
 private:    
-char *                            _raw_port;
+    char *                            _raw_port;
     int                               _port;
     std::string                       _password;
 
