@@ -511,7 +511,7 @@ void Server::handleMODE(User& user, const Message& msg)
     if (modeString.size() < 2 || (modeString[0] != '+' && modeString[0] != '-'))
     {
         std::string badMode(1, modeString[1]);
-        sendToClient(user, ":ircserv 472 " + user.getNick() + " " + badMode + ": is unknown mode char to me");
+        sendToClient(user, ":ircserv 472 " + user.getNick() + " " + badMode + " : is unknown mode char to me");
         return;
     }
     char sign = modeString[0];
@@ -533,7 +533,8 @@ void Server::handleMODE(User& user, const Message& msg)
     }
     else
     {
-        sendToClient(user, ":ircserv 472 " + user.getNick() + ": is unknown mode char to me");
+        std::string badMode(1, modeString[1]);
+        sendToClient(user, ":ircserv 472 " + user.getNick() + " " + badMode + " : is unknown mode char to me");
         return;
     }
 
