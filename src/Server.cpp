@@ -41,20 +41,17 @@ void Server::onClientRead(int clientFd)
     char buffer[4096];
 
     int bytesRead = recv(clientFd, buffer, sizeof(buffer), 0);
-    if (bytesRead == 0)//le client est deconnecte
-    {
+    if (bytesRead == 0) {
         disconnectClient(clientFd);
-        // std::cout << "Client disconnected" << std::endl;
         return;
     }
-    if (bytesRead < 0)//erreur pendant la lecture de recv
-    {
+    if (bytesRead < 0) {//erreur pendant la lecture de recv
         std::cout << "ERROR: recv failed" << std::endl;
         return;
     }
     std::map<int, User*>::iterator it = _usersByFd.find(clientFd);
-    if (it == _usersByFd.end() || it->second == NULL)//clientFd pas reconnu ou pas associe a un User valide
-    {
+
+    if (it == _usersByFd.end() || it->second == NULL) { //clientFd pas reconnu ou pas associe a un User valide
         std::cout << "ERROR: unknown clientFd in onClientRead" << std::endl;
         return;
     }
