@@ -480,16 +480,16 @@ void Server::handleMODE(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    if (msg._params.empty() == 0)
+    if (msg._params.size() < 2)
     {
-        sendToClient(user, ":ircserv 461 " + user.getNick() + " TOPIC :Not enough parameters");
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " MODE :Not enough parameters");
         return;
     }
     const std::string& channelName = msg._params[0];
     const std::string& modeString = msg._params[1];
     if (modeString.size() != 2)
     {
-        sendToClient(user, "ircserv 472 " + user.getNick() + " :Only one mode at a time");
+        sendToClient(user, ":ircserv 472 " + user.getNick() + " :Only one mode at a time");
         return;
     }
     if (_channels.count(channelName) == 0)
@@ -503,11 +503,6 @@ void Server::handleMODE(User& user, const Message& msg)
         sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
         return;
     }
-    if (!channel->hasUser(&user))
-    {
-        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
-        return;
-    }
     if (!channel->isOperator(&user))
     {
         sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
@@ -515,7 +510,8 @@ void Server::handleMODE(User& user, const Message& msg)
     }
     if (modeString.size() < 2 || (modeString[0] != '+' && modeString[0] != '-'))
     {
-        sendToClient(user, ":ircserv 472 " + user.getNick() + ": is unknown mode char to me");
+        std::string badMode(1, modeString[1]);
+        sendToClient(user, ":ircserv 472 " + user.getNick() + " " + badMode + ": is unknown mode char to me");
         return;
     }
     char sign = modeString[0];
