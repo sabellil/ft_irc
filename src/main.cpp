@@ -28,6 +28,8 @@
 //     std::cout << "\n" << std::endl;
 // }
 
+volatile sig_atomic_t g_run = 0;
+
 int main(int ac, char **av) {
     try {
         check_arg(ac, av);

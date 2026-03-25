@@ -6,7 +6,7 @@
 #    By: mairivie <mairivie@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/02/25 18:41:47 by mairivie          #+#    #+#              #
-#    Updated: 2026/03/25 12:35:09 by mairivie         ###   ########.fr        #
+#    Updated: 2026/03/25 14:44:00 by mairivie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -200,3 +200,25 @@ SINON la bonne vieille variable globale mais c'est crade
 OBJECTIFS :
 -handle les poll error
 -ameliorer gestion des signaux/leaks
+
+-----------poll() - revents (returned event) mask
+----- POLLERR (= error)
+Error condition (output only).
+An error has occurred on the device or stream. 
+This flag is only valid in the revents bitmask; 
+    it shall be ignored in the events member.
+ 
+----- POLLHUP (= Hang up)
+Hang up (output only).
+The device has been disconnected. 
+This event and POLLOUT are mutually-exclusive; 
+    a stream can never be writable if a hangup has occurred. 
+However, this event and POLLIN, POLLRDNORM, POLLRDBAND, or POLLPRI are not mutually-exclusive. 
+This flag is only valid in the revents bitmask; 
+    it shall be ignored in the events member.
+    
+----- POLLNVAL (= no value)
+Invalid request: fd not open (output only). 
+The specified fd value is invalid. 
+This flag is only valid in the revents member;
+    it shall ignored in the events member.
