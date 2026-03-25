@@ -5,6 +5,9 @@
 #include <vector>
 #include <map>
 #include <poll.h>
+#include <csignal>
+
+extern volatile sig_atomic_t g_run;
 
 class User;
 class Channel;

@@ -17,12 +17,10 @@
 #include <arpa/inet.h> //ai_family
 
 
-
 Server::Server(int port, const std::string& password)
 : _raw_port(NULL),
   _port(port),
   _password(password),
-  _running(true),
   _serverFd(-1)
 {
 }
@@ -31,7 +29,6 @@ Server::Server(char * raw_port, const std::string& password)
 : _raw_port(raw_port),
   _port(std::atoi(raw_port)),
   _password(password),
-  _running(true),
   _serverFd(-1)
 {
 }
@@ -62,7 +59,7 @@ void Server::onClientRead(int clientFd)
         return;
     }
     
-    //DEBUG
+    //DEBUG 
     // std::cout << "\rClient " << clientFd << ": " << buffer ;
     // send(clientFd, "PONG\n", 5, 0);
     // TODO:le buffer se clean pas entre plusieurs clients
@@ -120,11 +117,6 @@ void Server::processInputBuffer(User& user)
 }
 
 
-
-//DEBUG
-//std::cerr << "Checkpoint x" << std::endl;
-
-
 void Server::initServerFd() {
 
     struct addrinfo hints; 
@@ -163,14 +155,15 @@ void Server::initServerFd() {
 }
 
 
+
 void Server::run()
 {
     std::cout << "Starting new server. \nPort: " << this->_port 
     << "\nPassword: " << this->_password
     << std::endl;
 
+    g_run = 1; 
     initServerFd();
-    _running = true; 
     std::cout << GREEN "SERVER LISTENING :" RESET << std::endl;
     
     //    struct pollfd {
@@ -182,10 +175,11 @@ void Server::run()
     pollfd pfd_server = {this->_serverFd, POLLIN, 0};
     _pollFds.push_back(pfd_server);
 
-    while (_running)
+    while (g_run == 1)
     {
-        poll(&_pollFds[0], _pollFds.size(), -1); // TODO: gestion d'erreur
+        poll(&_pollFds[0], _pollFds.size(), 2000); // TODO: gestion d'erreur
         // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
+        std::cout << CYAN "Server on ? " << g_run << RESET << std::endl;
 
         for (size_t i = 0; i < _pollFds.size(); ++i)
         {
@@ -229,6 +223,18 @@ void Server::run()
             }
         }
     }
+    std::cout << YELLOW "server timeout" RESET << std::endl;
+    for (std::vector<pollfd>::reverse_iterator it = _pollFds.rbegin(); it != _pollFds.rend(); ++it) { 
+        if (it -> fd != 3) 
+            send(it -> fd, "Serveur Closed. Bye bye !\n", 26, 0); 
+        delete _usersByFd[it -> fd];       
+        _usersByFd.erase(it -> fd); // petit coup de menage
+        close(it -> fd);
+        std::cerr << YELLOW "--> stopping server : Fd " << it -> fd << " Disconnected !" RESET << std::endl;
+        _pollFds.pop_back();
+    }
+
+    std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
 }
 //post repas
 //regarder les details de sockaddr_in et voir ce que je peux recup pour remplir mon user.
