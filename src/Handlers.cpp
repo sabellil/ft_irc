@@ -545,6 +545,7 @@ void Server::handleMODE(User& user, const Message& msg)
     }
 }
 
+
 /*
 TO DO:
 - i --> mettre ou enlever du mode invite only un channel
