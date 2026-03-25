@@ -34,6 +34,35 @@ void Server::dispatchCommand(User& user, const Message& msg)
         handleUnknown(user, msg);
 }
 
+std::string Server::getClientName(const User& user) const
+{
+    if (user.getNick().empty())
+    {
+        return "*";
+    }
+    return user.getNick();
+}
+
+void Server::sendToClient(User& user, const std::string& message)
+{
+    std::string fullMessage = message + "\r\n";
+    ssize_t bytes = send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
+    if (bytes < 0)
+    {
+        std::cerr << "Error sending message to client" << std::endl;
+    }
+}
+
+bool Server::requireRegistered(User & user)
+{
+    if (!user.isRegistered())
+    {
+        sendToClient(user, ":ircserv 451 " + getClientName(user) + " :You have not registered yet");
+        return false;
+    }
+    return true;
+}
+
 void Server::handlePASS(User& user, const Message& msg)
 {
     if (user.isRegistered())
@@ -387,7 +416,7 @@ void Server::handleTOPIC(User& user, const Message& msg)
     
     if (msg._params.empty())
     {
-        sendToClient(user, ":ircserv 461 " + user.getNick() + "TOPIC :Not enough parameters");
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " TOPIC :Not enough parameters");
         return;
     }
 
@@ -451,39 +480,81 @@ void Server::handleMODE(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    (void)msg;
+    if (msg._params.empty() == 0)
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " TOPIC :Not enough parameters");
+        return;
+    }
+    const std::string& channelName = msg._params[0];
+    const std::string& modeString = msg._params[1];
+    if (_channels.count(channelName) == 0)
+    {
+        sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
+        return;
+    }
+    Channel* channel = _channels[channelName];
+    if (!channel->hasUser(&user))
+    {
+        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
+        return;
+    }
+    if (!channel->hasUser(&user))
+    {
+        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
+        return;
+    }
+    if (!channel->isOperator(&user))
+    {
+        sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
+        return;
+    }
+    if (modeString.size() < 2 || (modeString[0] != '+' && modeString[0] != '-'))
+    {
+        sendToClient(user, ":ircserv 472 " + user.getNick() + ": is unknown mode char to me");
+        return;
+    }
+    char sign = modeString[0];
+    char mode = modeString[1];
+
+    if (mode == 'i')
+    {
+        if (sign == '+')
+            channel->setInviteOnly(true);
+        else
+            channel-->setInviteOnly(false);
+    }
+    else if (mode == 't')
+    {
+        if (sign == '+')
+            channel->setTopicRestricted(true);
+        else
+            channel->setTopicRestricted(false);
+    }
+    else
+    {
+        sendToClient(user, ":ircserv 472 " + user.getNick() + ": is unknown mode char to me");
+        return;
+    }
+
+    std::string modeMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost MODE " + channelName + " " + modeString;
+    
+
 }
+
+/*
+TO DO:
+- i --> mettre ou enlever du mode invite only un channel
+- t --> mettre ou enlever droit de la commande TOPIC pour operators
+- k --> mettre ou enlever mdp pour le channel
+- l --> donner ou enlever droit operator a un user
+- o --> mettre ou enlever nb de user limit par channel
+*/
+
+
+
 
 void Server::handleUnknown(User& user, const Message& msg)
 {
     sendToClient(user, ":ircserv 421 " + getClientName(user) + " " + msg._command + " :Unknown command");
 }
 
-std::string Server::getClientName(const User& user) const//gestion propre du renvoi de msg is suer pas registered
-{
-    if (user.getNick().empty())
-    {
-        return "*";
-    }
-    return user.getNick();
-}
-
-void Server::sendToClient(User& user, const std::string& message)
-{
-    std::string fullMessage = message + "\r\n";
-    ssize_t bytes = send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
-    if (bytes < 0)
-    {
-        std::cerr << "Error sending message to client" << std::endl;
-    }
-}
-
-bool Server::requireRegistered(User & user)
-{
-    if (!user.isRegistered())
-    {
-        sendToClient(user, ":ircserv 451 " + getClientName(user) + " :You have not registered yet");
-        return false;
-    }
-    return true;
-}
