@@ -60,9 +60,19 @@ const std::set<User*>& Channel::getOperators() const
     return _operators;
 }
 
+bool Channel::isInvited(User* user) const
+{
+    return _invitedUsers.find(user) != _invitedUsers.end();
+}
+
 bool Channel::isInviteOnly() const
 {
     return _inviteOnly;
+}
+
+void Channel::addInvited(User* user)
+{
+    _invitedUsers.insert(user);
 }
 
 void Channel::setInviteOnly(bool value)

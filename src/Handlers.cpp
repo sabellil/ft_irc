@@ -318,6 +318,50 @@ void Server::handleINVITE(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
+    if (msg._params.size() < 2)
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " INVITE :Not enough parameters");
+        return;
+    }
+
+    const std::string& targetNick = msg._params[0];
+    const std::string& channelName = msg._params[1];
+
+    if (_channels.count(channelName) == 0)
+    {
+        sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
+        return;
+    }
+
+    Channel* channel = _channels[channelName];
+
+    if (!channel->hasUser(&user))
+    {
+        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
+        return;
+    }
+    
+    if (!channel->isOperator(&user))
+    {
+        sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
+        return;
+    }
+
+    if (_usersByNick.count(targetNick) == 0)
+    {
+        sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " :No such nick");
+        return;
+    }
+    User* targetUser = _usersByNick[targetNick];
+
+    if (channel->hasUser(targetUser))
+    {
+        sendToClient(user, ":ircserv 443 " + user.getNick() + " " + targetNick + " " + channelName + " :is already on channel");
+        return;
+    }
+    channel->addInvited(targetUser);
+    sendToClient(user, "ircsev 341 " + user.getNick() + " " + targetNick + " " + channelName);
+    sendToClient(*targetUser, ":" + user.getNick() + "!" + user.getUsername() + "@localhost INVITE " + targetNick + " :" + channelName);
 
 }
 /*

@@ -31,14 +31,12 @@ private:
     char *                            _raw_port;
     int                               _port;
     std::string                       _password;
-
     bool                              _running;
     int                               _serverFd;
     std::vector<pollfd>               _pollFds;//contient fd, events reventd
     std::map<int, User*>              _usersByFd;
     std::map<std::string, User*>      _usersByNick;
     std::map<std::string, Channel*>   _channels;
-    //target?
 
     std::string                       getClientName(const User& user) const;
     void                              handlePASS(User&, const Message&);
