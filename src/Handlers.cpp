@@ -260,7 +260,6 @@ void Server::handleKICK(User& user, const Message& msg)
     if (!requireRegistered(user))
         return;
 
-    //Verifier params KICK #channel user --> 461 not enough parameters
     if (msg._params.size() < 2)
     {
         sendToClient(user, ":ircserv 461 " + user.getNick() + " KICK :Not enough parameters");
@@ -270,7 +269,6 @@ void Server::handleKICK(User& user, const Message& msg)
     const std::string& channelName = msg._params[0];
     const std::string& targetNick = msg._params[1];
 
-    //Verifier si channel existe --> 403 no such channel
     if (_channels.count(channelName) == 0)
     {
         sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
@@ -278,13 +276,13 @@ void Server::handleKICK(User& user, const Message& msg)
     }
 
     Channel* channel = _channels[channelName];
-    //Verifier si user qui kick est dans le channel --> 442 You4re not on that channel
+
     if (!channel->hasUser(&user))
     {
         sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
         return;
     }
-    //Verifier is user est ope --> 482 You're not channel operator (is_Operator())
+
     if (!channel->isOperator(&user))
     {
         sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
@@ -292,14 +290,13 @@ void Server::handleKICK(User& user, const Message& msg)
     }
 
     User* targetUser = _usersByNick[targetNick];
-    //Verifier que la cible du kick existe --> 401 No such nick
+
     if (_usersByNick.count(targetNick) == 0)
     {
         sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " :No such nick");
         return;
     }
 
-    //Verifier que la cible ets dans le channel --> 441 They aren't on that channel
     if (!channel->hasUser(targetUser))
     {
         sendToClient(user, ":ircserv 441 " + user.getNick() + " " + targetNick + " " + channelName + " :They aren't on that channel");
@@ -308,14 +305,11 @@ void Server::handleKICK(User& user, const Message& msg)
 
     std::string kickMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost KICK " + channelName + " " + targetNick;
 
-    // Si OK --> KICK
-        //envoyer a tous : @ope!user@host KICK #channel targetuser
     const std::set<User*>& users = channel->getUsers();
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
     {
         sendToClient(**it, kickMsg);
     }
-    //retirer le user du channel channel-->removeUser(targetuser)
     channel->removeUser(targetUser);
 }
 
@@ -324,6 +318,9 @@ void Server::handleINVITE(User& user, const Message& msg)
     if (!requireRegistered(user))
         return;
     (void)msg;
+/*
+
+*/
 }
 
 void Server::handleTOPIC(User& user, const Message& msg)
