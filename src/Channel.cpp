@@ -134,12 +134,12 @@ void Channel::setTopic(const std::string& topic)
     _topic = topic;
 }
 
-bool Channel::isInvite(User* user) const
+bool Channel::isInvited(User* user) const
 {
     return  _invitedUsers.count(user) > 0;
 }
 
-void Channel::addInvite(User* user)
+void Channel::addInvited(User* user)
 {
     _invitedUsers.insert(user);
 }

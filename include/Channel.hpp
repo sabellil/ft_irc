@@ -14,6 +14,7 @@ class Channel
         Channel();
         Channel(const std::string& name);
         ~Channel();
+        std::string             _name;
 
         const std::string&      getName() const;
         bool                    hasUser(User* user) const;//un user est-il deja dans le channel?
@@ -29,11 +30,16 @@ class Channel
         bool                    isInviteOnly() const;
         void                    setInviteOnly(bool value);
         bool                    isInvited(User* user) const;
-        void                    addInvite(User* user);
+        void                    addInvited(User* user);
         void                    removeUserLimit(User* user);
+        void                    removeInvite(User* user);
 
         bool                    isTopicRestricted() const;
         void                    setTopicRestricted(bool value);
+        const std::string&      getTopic() const;
+        void                    setTopic(const std::string& topic);
+
+
 
         bool                    hasKey() const;
         const std::string&      getKey() const;
@@ -46,10 +52,10 @@ class Channel
         void                    removeUserLimit();
 
     private:
-        std::string             _name;
         std::set<User*>         _users;//set pour stocker mes users, eviter les doublons et verifier rqpidement si il est deja dans le channel
         std::set<User*>         _operators;
         std::set<User*>         _invitedUsers;
+        std::string             _topic;
 
         bool                    _inviteOnly;
         bool                    _topicRestricted;

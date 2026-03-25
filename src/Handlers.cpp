@@ -197,8 +197,8 @@ void Server::handleJOIN(User& user, const Message& msg)
         if (!names.empty())
             names += " ";
         if (channel->isOperator(*it))
-            name += "@";
-        name += (*it)->getNick();
+            names += "@";
+        names += (*it)->getNick();
     }
 
     sendToClient(user, ":ircserv 353 " + user.getNick() + " = " + channelName + " :" + names);
@@ -311,7 +311,7 @@ void Server::handleKICK(User& user, const Message& msg)
     // Si OK --> KICK
         //envoyer a tous : @ope!user@host KICK #channel targetuser
     const std::set<User*>& users = channel->getUsers();
-    for (std::set<User*>::const_iterator it = users.being(); it != users.end(); ++it)
+    for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
     {
         sendToClient(**it, kickMsg);
     }
