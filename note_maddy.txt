@@ -6,9 +6,16 @@
 #    By: mairivie <mairivie@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/02/25 18:41:47 by mairivie          #+#    #+#              #
-#    Updated: 2026/03/10 16:00:13 by mairivie         ###   ########.fr        #
+#    Updated: 2026/03/24 18:28:40 by mairivie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+//TODO 20-Mar
+//clean git branch 
+NB: innover c'est bien, perdre du temps moins.
+un jour tu ajouteras des alias en attendant prends des notes
+//handle error server
+//link user
 
 //avoir une methode sighandler dans la classe server 
 //permet d'avoir acces a la variable bool serveur on off
@@ -181,3 +188,11 @@ struct sockaddr *addr : info de l'adresse du client qui se connecte
         TODO: adapter avec struct pour ip v4 et v6
 socklen_t * addrlen : taille de la structure (obtenu avec un size of)
         TODO: creuser le type socklen_t
+
+
+mes sig handlers n'auront JAMAIS acces aux infos du server ou des clients
+MAIS -> Ils peuvent changer le statut run a false !
+Donc with le time out, on peut trouver un timing pour check run et si c'est en false
+=> operation grand menage
+
+SINON la bonne vieille variable globale mais c'est crade
