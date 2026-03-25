@@ -15,6 +15,7 @@
 #include <arpa/inet.h> //ai_family
 
 
+
 Server::Server(int port, const std::string& password)
 : _raw_port(NULL),
   _port(port),
@@ -166,16 +167,8 @@ void Server::run()
                 // couper la connexion+ remove fd + client
                 continue;
             }
-            //  NOUVELLE CONNEXION (version sara pseudo code)
-            // if (p.fd == _serverFd && (p.revents & POLLIN)) { //formulation bizarre mais en gros POLLIN and co sont des masques{
-            //     int client_fd = accept(_serverFd, NULL, NULL); 
-            //     if (client_fd < 0) 
-            //         continue;
-                // créer client TODO: creation/inti de l'objet client
-                // _usersByFd[client_fd] = User(client_fd);
-
-            //  NOUVELLE CONNEXION (version maddy code)
-            if (p.fd == _serverFd && (p.revents & POLLIN)) {
+            //  NOUVELLE CONNEXION 
+            if (p.fd == _serverFd && (p.revents & POLLIN)) { //formulation bizarre mais en gros POLLIN and co sont des masques
                 struct sockaddr_storage client_addr; //TODO importance/utilite d'usage de la structure sockaddress
                 socklen_t addr_size = sizeof(client_addr);
         
@@ -184,6 +177,8 @@ void Server::run()
                 if (client_fd < 0)
                     throw std::logic_error("fail connexion client.. "); 
                 //= check si une connexion est possible, et que le serveur a bien recu le fd du client
+                        // créer client TODO: creation/inti de l'objet client
+                // _usersByFd[client_fd] = User(client_fd);
                 pollfd pfd_client = {client_fd, POLLIN, 0}; //ajout du fd client a la boucle
                 _pollFds.push_back(pfd_client);
                 std::cout << "New client connected: fd " << client_fd << std::endl;

@@ -13,6 +13,4 @@ void    sigStopHandler(int signum);
 void    check_arg(int ac, char **av);
 
 
-// int     ft_atoi_port(const char* str);
-
 #endif
