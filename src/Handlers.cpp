@@ -487,6 +487,11 @@ void Server::handleMODE(User& user, const Message& msg)
     }
     const std::string& channelName = msg._params[0];
     const std::string& modeString = msg._params[1];
+    if (modeString.size() != 2)
+    {
+        sendToClient(user, "ircserv 472 " + user.getNick() + " :Only one mode at a time");
+        return;
+    }
     if (_channels.count(channelName) == 0)
     {
         sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
@@ -521,7 +526,7 @@ void Server::handleMODE(User& user, const Message& msg)
         if (sign == '+')
             channel->setInviteOnly(true);
         else
-            channel-->setInviteOnly(false);
+            channel->setInviteOnly(false);
     }
     else if (mode == 't')
     {
@@ -537,8 +542,11 @@ void Server::handleMODE(User& user, const Message& msg)
     }
 
     std::string modeMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost MODE " + channelName + " " + modeString;
-    
-
+    const std::set<User*>& users = channel->getUsers();
+    for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+    {
+        sendToClient(**it, modeMsg);
+    }
 }
 
 /*
