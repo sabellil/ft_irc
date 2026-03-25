@@ -1,14 +1,14 @@
 - authentifier --> PASS
-- nickname --> NICK OK Non case sensitive, refuses duplicates
+- nickname --> NICK OK Non case sensitive, refuses duplicates https://irssi.org/documentation/help/nick/
 - username --> USER 
 - join channel --> JOIN 
 - private message/channel message --> PRIVMSG
 
 Operators command only
-- KICK
-- INVITE
-- TOPIC
-- MOVE (i t k o l)
+- KICK https://irssi.org/documentation/help/kick/
+- INVITE https://irssi.org/documentation/help/invite/
+- TOPIC https://irssi.org/documentation/help/topic/
+- MODE (i t k o l) https://irssi.org/documentation/help/mode/
 
 
 While listening, if the server detects that a client is reaching out and if there is something to read we start parsing the client message. 
