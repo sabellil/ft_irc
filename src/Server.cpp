@@ -63,8 +63,8 @@ void Server::onClientRead(int clientFd)
     }
     
     //DEBUG
-    std::cout << "\rClient " << clientFd << ": " << buffer ;
-    send(clientFd, "PONG\n", 5, 0);
+    // std::cout << "\rClient " << clientFd << ": " << buffer ;
+    // send(clientFd, "PONG\n", 5, 0);
     // TODO:le buffer se clean pas entre plusieurs clients
     //DEBUG
 
