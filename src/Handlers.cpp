@@ -289,13 +289,14 @@ void Server::handleKICK(User& user, const Message& msg)
         return;
     }
 
-    User* targetUser = _usersByNick[targetNick];
 
     if (_usersByNick.count(targetNick) == 0)
     {
         sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " :No such nick");
         return;
     }
+
+    User* targetUser = _usersByNick[targetNick];
 
     if (!channel->hasUser(targetUser))
     {
@@ -304,7 +305,8 @@ void Server::handleKICK(User& user, const Message& msg)
     }
 
     std::string kickMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost KICK " + channelName + " " + targetNick;
-
+    if (!msg._trailing.empty())
+        kickMsg != " :" + msg._trailing;
     const std::set<User*>& users = channel->getUsers();
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
     {
