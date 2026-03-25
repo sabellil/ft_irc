@@ -305,9 +305,18 @@ void Server::handleKICK(User& user, const Message& msg)
         sendToClient(user, ":ircserv 441 " + user.getNick() + " " + targetNick + " " + channelName + " :They aren't on that channel");
         return;
     }
+
+    std::string kickMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost KICK " + channelName + " " + targetNick;
+
     // Si OK --> KICK
         //envoyer a tous : @ope!user@host KICK #channel targetuser
-        //retirer le user du channel channel-->removeUser(targetuser)
+    const std::set<User*>& users = channel->getUsers();
+    for (std::set<User*>::const_iterator it = users.being(); it != users.end(); ++it)
+    {
+        sendToClient(**it, kickMsg);
+    }
+    //retirer le user du channel channel-->removeUser(targetuser)
+    channel->removeUser(targetUser);
 }
 
 void Server::handleINVITE(User& user, const Message& msg)
