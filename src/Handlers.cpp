@@ -379,14 +379,63 @@ Verifs :
 - envoyer le msg INVITE a la target
 */
 
+
 void Server::handleTOPIC(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    (void)msg;
+    
+    if (msg._params.empty())
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " INVITE :Not enough parameters");
+        return;
+    }
+
+    const std::string& channelName = msg._params[0];
+
+    if (_channels.count(channelName) == 0)
+    {
+        sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
+        return;
+    }
+    
+    Channel* channel = _channels[channelName];
+
+    if (!channel->hasUser)
+    {
+        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
+        return;
+    }
+    if (msg._trailing.empty())
+    {
+        if (channel->getTopic().empty())
+        {
+            sendToClient(user, ":ircserv 331 " + user.getNick() + " " + channelName + " :No topic is set");
+        }
+        else
+        {
+            sendToClient(user, ":ircserv 332 " + user.getNick() + " " + channelName + " :" + channel->getTopic());
+        }
+        return;
+    }
+    if (channel->isTopicRestricted() && !channel->isOperator(&user))
+    {
+        sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
+        return;
+    }
+    channel->setTopic(msg._trailing);
+    std::string topicMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost TOPIC" + channelName + " :" + msg._trailing;
+    const std::set<User*>& users = channel->getUsers;
+    for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+    {
+        sendToClient(**it, topicMsg);
+    }
 }
 
 /*
+Utilisations:
+- TOPIC #chan -->lire le topic
+- TOPIC #chan :nouveau topic --> update le topic
 - user enregistrer
 - au moisn un param
 - channel existant
