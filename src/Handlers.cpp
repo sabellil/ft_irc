@@ -387,7 +387,7 @@ void Server::handleTOPIC(User& user, const Message& msg)
     
     if (msg._params.empty())
     {
-        sendToClient(user, ":ircserv 461 " + user.getNick() + " INVITE :Not enough parameters");
+        sendToClient(user, ":ircserv 461 " + user.getNick() + "TOPIC :Not enough parameters");
         return;
     }
 
@@ -401,7 +401,7 @@ void Server::handleTOPIC(User& user, const Message& msg)
     
     Channel* channel = _channels[channelName];
 
-    if (!channel->hasUser)
+    if (!channel->hasUser(&user))
     {
         sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
         return;
@@ -424,8 +424,8 @@ void Server::handleTOPIC(User& user, const Message& msg)
         return;
     }
     channel->setTopic(msg._trailing);
-    std::string topicMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost TOPIC" + channelName + " :" + msg._trailing;
-    const std::set<User*>& users = channel->getUsers;
+    std::string topicMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost TOPIC " + channelName + " :" + msg._trailing;
+    const std::set<User*>& users = channel->getUsers();
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
     {
         sendToClient(**it, topicMsg);
