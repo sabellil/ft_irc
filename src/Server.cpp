@@ -89,6 +89,11 @@ void    Server::disconnectClient(int clientFd) {
         
 }
 
+/*
+SARA --> a partager plus tard
+On nettoie pas _userByNick, les channels ou le users est present, le soeprateurs si le user etait op, les inve
+*/
+
 //Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
 void Server::processInputBuffer(User& user)
 {

@@ -34,6 +34,35 @@ void Server::dispatchCommand(User& user, const Message& msg)
         handleUnknown(user, msg);
 }
 
+std::string Server::getClientName(const User& user) const
+{
+    if (user.getNick().empty())
+    {
+        return "*";
+    }
+    return user.getNick();
+}
+
+void Server::sendToClient(User& user, const std::string& message)
+{
+    std::string fullMessage = message + "\r\n";
+    ssize_t bytes = send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
+    if (bytes < 0)
+    {
+        std::cerr << "Error sending message to client" << std::endl;
+    }
+}
+
+bool Server::requireRegistered(User & user)
+{
+    if (!user.isRegistered())
+    {
+        sendToClient(user, ":ircserv 451 " + getClientName(user) + " :You have not registered yet");
+        return false;
+    }
+    return true;
+}
+
 void Server::handlePASS(User& user, const Message& msg)
 {
     if (user.isRegistered())
@@ -260,7 +289,6 @@ void Server::handleKICK(User& user, const Message& msg)
     if (!requireRegistered(user))
         return;
 
-    //Verifier params KICK #channel user --> 461 not enough parameters
     if (msg._params.size() < 2)
     {
         sendToClient(user, ":ircserv 461 " + user.getNick() + " KICK :Not enough parameters");
@@ -270,7 +298,6 @@ void Server::handleKICK(User& user, const Message& msg)
     const std::string& channelName = msg._params[0];
     const std::string& targetNick = msg._params[1];
 
-    //Verifier si channel existe --> 403 no such channel
     if (_channels.count(channelName) == 0)
     {
         sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
@@ -278,28 +305,28 @@ void Server::handleKICK(User& user, const Message& msg)
     }
 
     Channel* channel = _channels[channelName];
-    //Verifier si user qui kick est dans le channel --> 442 You4re not on that channel
+
     if (!channel->hasUser(&user))
     {
         sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
         return;
     }
-    //Verifier is user est ope --> 482 You're not channel operator (is_Operator())
+
     if (!channel->isOperator(&user))
     {
         sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
         return;
     }
 
-    User* targetUser = _usersByNick[targetNick];
-    //Verifier que la cible du kick existe --> 401 No such nick
+
     if (_usersByNick.count(targetNick) == 0)
     {
         sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " :No such nick");
         return;
     }
 
-    //Verifier que la cible ets dans le channel --> 441 They aren't on that channel
+    User* targetUser = _usersByNick[targetNick];
+
     if (!channel->hasUser(targetUser))
     {
         sendToClient(user, ":ircserv 441 " + user.getNick() + " " + targetNick + " " + channelName + " :They aren't on that channel");
@@ -307,69 +334,232 @@ void Server::handleKICK(User& user, const Message& msg)
     }
 
     std::string kickMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost KICK " + channelName + " " + targetNick;
-
-    // Si OK --> KICK
-        //envoyer a tous : @ope!user@host KICK #channel targetuser
+    if (!msg._trailing.empty())
+        kickMsg != " :" + msg._trailing;
     const std::set<User*>& users = channel->getUsers();
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
     {
         sendToClient(**it, kickMsg);
     }
-    //retirer le user du channel channel-->removeUser(targetuser)
     channel->removeUser(targetUser);
 }
 
+//INVITE <nick> <channel>
 void Server::handleINVITE(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    (void)msg;
+    if (msg._params.size() < 2)
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " INVITE :Not enough parameters");
+        return;
+    }
+
+    const std::string& targetNick = msg._params[0];
+    const std::string& channelName = msg._params[1];
+
+    if (_channels.count(channelName) == 0)
+    {
+        sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
+        return;
+    }
+
+    Channel* channel = _channels[channelName];
+
+    if (!channel->hasUser(&user))
+    {
+        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
+        return;
+    }
+    
+    if (!channel->isOperator(&user))
+    {
+        sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
+        return;
+    }
+
+    if (_usersByNick.count(targetNick) == 0)
+    {
+        sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " :No such nick");
+        return;
+    }
+    User* targetUser = _usersByNick[targetNick];
+
+    if (channel->hasUser(targetUser))
+    {
+        sendToClient(user, ":ircserv 443 " + user.getNick() + " " + targetNick + " " + channelName + " :is already on channel");
+        return;
+    }
+    channel->addInvited(targetUser);
+    sendToClient(user, "ircsev 341 " + user.getNick() + " " + targetNick + " " + channelName);
+    sendToClient(*targetUser, ":" + user.getNick() + "!" + user.getUsername() + "@localhost INVITE " + targetNick + " :" + channelName);
+
 }
+/*
+Verifs :
+- assez de params
+- channel existe
+- le user qui invite est sur le channel
+- si il est operetor si on est mode invite only
+- la cible existe
+- la cible n'est pas deja dans le channel
+- ajouter la cible aux invites du channel
+- envoyer la reponse a l'inviteur
+- envoyer le msg INVITE a la target
+*/
+
 
 void Server::handleTOPIC(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    (void)msg;
+    
+    if (msg._params.empty())
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " TOPIC :Not enough parameters");
+        return;
+    }
+
+    const std::string& channelName = msg._params[0];
+
+    if (_channels.count(channelName) == 0)
+    {
+        sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
+        return;
+    }
+    
+    Channel* channel = _channels[channelName];
+
+    if (!channel->hasUser(&user))
+    {
+        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
+        return;
+    }
+    if (msg._trailing.empty())
+    {
+        if (channel->getTopic().empty())
+        {
+            sendToClient(user, ":ircserv 331 " + user.getNick() + " " + channelName + " :No topic is set");
+        }
+        else
+        {
+            sendToClient(user, ":ircserv 332 " + user.getNick() + " " + channelName + " :" + channel->getTopic());
+        }
+        return;
+    }
+    if (channel->isTopicRestricted() && !channel->isOperator(&user))
+    {
+        sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
+        return;
+    }
+    channel->setTopic(msg._trailing);
+    std::string topicMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost TOPIC " + channelName + " :" + msg._trailing;
+    const std::set<User*>& users = channel->getUsers();
+    for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+    {
+        sendToClient(**it, topicMsg);
+    }
 }
+
+/*
+Utilisations:
+- TOPIC #chan -->lire le topic
+- TOPIC #chan :nouveau topic --> update le topic
+- user enregistrer
+- au moisn un param
+- channel existant
+- si pas de trailing j'affiche el topic actuel
+- si trailing present je dois changer le topic
+- si channel->istopicrestricted et user pas op --> nope
+- sinon channel->setTopic(msg._trailing)
+- affichage du nouveau topic a tous les membres du channel 
+*/
+
 
 void Server::handleMODE(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    (void)msg;
+    if (msg._params.size() < 2)
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " MODE :Not enough parameters");
+        return;
+    }
+    const std::string& channelName = msg._params[0];
+    const std::string& modeString = msg._params[1];
+    if (modeString.size() != 2)
+    {
+        sendToClient(user, ":ircserv 472 " + user.getNick() + " :Only one mode at a time");
+        return;
+    }
+    if (_channels.count(channelName) == 0)
+    {
+        sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
+        return;
+    }
+    Channel* channel = _channels[channelName];
+    if (!channel->hasUser(&user))
+    {
+        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
+        return;
+    }
+    if (!channel->isOperator(&user))
+    {
+        sendToClient(user, ":ircserv 482 " + user.getNick() + " " + channelName + " :You're not channel operator");
+        return;
+    }
+    if (modeString.size() < 2 || (modeString[0] != '+' && modeString[0] != '-'))
+    {
+        std::string badMode(1, modeString[1]);
+        sendToClient(user, ":ircserv 472 " + user.getNick() + " " + badMode + ": is unknown mode char to me");
+        return;
+    }
+    char sign = modeString[0];
+    char mode = modeString[1];
+
+    if (mode == 'i')
+    {
+        if (sign == '+')
+            channel->setInviteOnly(true);
+        else
+            channel->setInviteOnly(false);
+    }
+    else if (mode == 't')
+    {
+        if (sign == '+')
+            channel->setTopicRestricted(true);
+        else
+            channel->setTopicRestricted(false);
+    }
+    else
+    {
+        sendToClient(user, ":ircserv 472 " + user.getNick() + ": is unknown mode char to me");
+        return;
+    }
+
+    std::string modeMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost MODE " + channelName + " " + modeString;
+    const std::set<User*>& users = channel->getUsers();
+    for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+    {
+        sendToClient(**it, modeMsg);
+    }
 }
+
+
+/*
+TO DO:
+- i --> mettre ou enlever du mode invite only un channel
+- t --> mettre ou enlever droit de la commande TOPIC pour operators
+- k --> mettre ou enlever mdp pour le channel
+- l --> donner ou enlever droit operator a un user
+- o --> mettre ou enlever nb de user limit par channel
+*/
+
+
+
 
 void Server::handleUnknown(User& user, const Message& msg)
 {
     sendToClient(user, ":ircserv 421 " + getClientName(user) + " " + msg._command + " :Unknown command");
 }
 
-std::string Server::getClientName(const User& user) const//gestion propre du renvoi de msg is suer pas registered
-{
-    if (user.getNick().empty())
-    {
-        return "*";
-    }
-    return user.getNick();
-}
-
-void Server::sendToClient(User& user, const std::string& message)
-{
-    std::string fullMessage = message + "\r\n";
-    ssize_t bytes = send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
-    if (bytes < 0)
-    {
-        std::cerr << "Error sending message to client" << std::endl;
-    }
-}
-
-bool Server::requireRegistered(User & user)
-{
-    if (!user.isRegistered())
-    {
-        sendToClient(user, ":ircserv 451 " + getClientName(user) + " :You have not registered yet");
-        return false;
-    }
-    return true;
-}
