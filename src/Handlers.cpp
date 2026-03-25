@@ -379,15 +379,24 @@ Verifs :
 - envoyer le msg INVITE a la target
 */
 
-
-
-
 void Server::handleTOPIC(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
     (void)msg;
 }
+
+/*
+- user enregistrer
+- au moisn un param
+- channel existant
+- si pas de trailing j'affiche el topic actuel
+- si trailing present je dois changer le topic
+- si channel->istopicrestricted et user pas op --> nope
+- sinon channel->setTopic(msg._trailing)
+- affichage du nouveau topic a tous les membres du channel 
+*/
+
 
 void Server::handleMODE(User& user, const Message& msg)
 {
