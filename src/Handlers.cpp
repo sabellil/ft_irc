@@ -313,15 +313,28 @@ void Server::handleKICK(User& user, const Message& msg)
     channel->removeUser(targetUser);
 }
 
+//INVITE <nick> <channel>
 void Server::handleINVITE(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-    (void)msg;
-/*
 
-*/
 }
+/*
+Verifs :
+- assez de params
+- channel existe
+- le user qui invite est sur le channel
+- si il est operetor si on est mode invite only
+- la cible existe
+- la cible n'est pas deja dans le channel
+- ajouter la cible aux invites du channel
+- envoyer la reponse a l'inviteur
+- envoyer le msg INVITE a la target
+*/
+
+
+
 
 void Server::handleTOPIC(User& user, const Message& msg)
 {
