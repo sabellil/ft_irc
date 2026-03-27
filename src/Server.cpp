@@ -77,27 +77,40 @@ void    Server::disconnectClient(int clientFd)
         return;
     User* user = userIt->second;
     if (!user->getNick().empty())//verifie si le user a un nick avant de le supprimer. Empty test dans le cas d'une deconnection avant d'avoir choiss son nick
-        _usersByNick.erase(user->getNick);
-        //vire le fd du pollFd
-    for (std::map<std::string, Channel*>::iterator chanIt = _channels.begin(); chanIt != _channels.end();)//on parcourt tous nos channels
+        _usersByNick.erase(user->getNick());
+    for (std::map<std::string, Channel*>::iterator chanIt = _channels.begin(); chanIt != _channels.end(); )//on parcourt tous nos channels
     {
         Channel* channel = chanIt->second;//je recupere mon channel courant
+        if (channel->hasUser(user))//retirer le user du channel
+        {
+            channel->removeUser(user);
+            channel->removeOperator(user);
+            channel->removeInvite(user);
+        }
+        if (channel->getUsers().empty())//retirer les objets channels vides
+        {
+            delete channel;
+            std::map<std::string, Channel*>::iterator toErase = chanIt++;
+            _channels.erase(toErase);
+        }
+        else//si pas vide je passe a la suite
+        {
+            ++chanIt;
+        }
+    }
+    for (std::vector<pollfd>::iterator it = _pollFds.begin(); it != _pollFds.end(); ++it)//nettoyer notre vector pollfds
+    {
+        if (it->fd == clientFd)
+        {
+            _pollFds.erase(it);
+            break;
+        }
 
     }
-    for (std::vector<pollfd>::iterator it = _pollFds.begin(); it != _pollFds.end(); ++it) {
-
-            if ( it -> fd == clientFd) {
-                _pollFds.erase(it);
-
-                delete _usersByFd[clientFd];       
-                _usersByFd.erase(clientFd); // petit coup de menage
-
-                close(clientFd);
-                std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
-                return;
-            }
-        }
-        
+    close(clientFd);
+    delete user;
+    _usersByFd.erase(userIt);
+    std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
 }
 
 /*
@@ -196,7 +209,7 @@ void Server::run()
     {
         poll(&_pollFds[0], _pollFds.size(), 2000); // TODO: gestion d'erreur
         // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
-        std::cout << CYAN "Server on ? " << g_run << RESET << std::endl;
+        // std::cout << CYAN "Server on ? " << g_run << RESET << std::endl;
 
         for (size_t i = 0; i < _pollFds.size(); ++i)
         {

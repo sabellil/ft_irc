@@ -80,6 +80,11 @@ void Channel::setInviteOnly(bool value)
     _inviteOnly = value;
 }
 
+void Channel::removeInvite(User* user)
+{
+    _invitedUsers.erase(user);
+}
+
 bool Channel::isTopicRestricted() const
 {
     return _topicRestricted;
