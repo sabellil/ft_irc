@@ -6,11 +6,11 @@ Channel::Channel() : _name("")
 
 }
 
-Channel::Channel(const std::string& name) : _name(name)
+Channel::Channel(const std::string& name) : _name(name), _topic(""), _inviteOnly(false), _topicRestricted(false), _hasKey(false), _key(""), _userLimit(0), _hasUserLimit(false) 
 {
 
 }
-//A update? OUI avec les differents arguments de user limit true false, etc
+
 Channel::~Channel()
 {
 }

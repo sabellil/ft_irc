@@ -531,6 +531,22 @@ void Server::handleMODE(User& user, const Message& msg)
         else
             channel->setTopicRestricted(false);
     }
+    else if (mode == 'k')
+    {
+        if (sign == '+')
+        {
+            if (msg._params.size() < 3)
+            {
+                sendToClient(user, ":ircserv 461 " + user.getNick() + " MODE :Not enough parameters");
+                return;
+            }
+            channel->setKey(msg._params[2]);
+        }
+        else
+        {
+            channel->removeKey();
+        }
+    }
     else
     {
         std::string badMode(1, modeString[1]);
@@ -539,14 +555,14 @@ void Server::handleMODE(User& user, const Message& msg)
     }
 
     std::string modeMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost MODE " + channelName + " " + modeString;
+    if (mode == 'k' && sign == '+')
+        modeMsg += " " + msg._params[2];
     const std::set<User*>& users = channel->getUsers();
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
     {
         sendToClient(**it, modeMsg);
     }
 }
-
-
 
 
 /*
@@ -561,8 +577,6 @@ TO DO:
 - Update disconnectClient
 
 */
-
-
 
 
 void Server::handleUnknown(User& user, const Message& msg)
