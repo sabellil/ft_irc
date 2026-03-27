@@ -6,6 +6,7 @@
 #include <set>
 #include <iostream>
 #include <sys/socket.h>
+#include <cstdlib>
 
 
 void Server::dispatchCommand(User& user, const Message& msg)
@@ -175,21 +176,12 @@ void Server::handleJOIN(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
-
-    if (channel->hasUserLimit() && channel->getUsers().size() >= (size_t)channel->getUserLimit())
-    {
-        sendToClient(user, ":ircserv 471 " + user.getNick() + " " + channelName + " :Channel is full");
-        return;
-    }
-
     if (msg._params.empty())
     {
         sendToClient(user, ":ircserv 461 " + user.getNick() + " JOIN :Not enough parameters");
         return;
     }
-
     const std::string& channelName = msg._params[0];
-
     if (channelName.empty() || channelName[0] != '#')
     {
         sendToClient(user, ":ircserv 476 " + user.getNick() + " " + channelName + " :Bad Channel Mask");
@@ -209,6 +201,11 @@ void Server::handleJOIN(User& user, const Message& msg)
     else
     {
         channel = _channels[channelName];
+    }
+    if (channel->hasUserLimit() && channel->getUsers().size() >= (size_t)channel->getUserLimit())
+    {
+        sendToClient(user, ":ircserv 471 " + user.getNick() + " " + channelName + " :Channel is full");
+        return;
     }
 
     if (channel->hasUser(&user))
@@ -555,18 +552,21 @@ void Server::handleMODE(User& user, const Message& msg)
     }
     else if (mode == 'l')
     {
-        if (msg._params.size() < 3)
+        if (sign == '+')
         {
-            sendToClient(user, ":ircserv 461 " + user.getNick() + " MODE :Not enough parameters");
-            return;
+            if (msg._params.size() < 3)
+            {
+                sendToClient(user, ":ircserv 461 " + user.getNick() + " MODE :Not enough parameters");
+                return;
+            }
+            int limit = atoi(msg._params[2].c_str());
+            if (limit <= 0)
+            {
+                sendToClient(user, ":ircserv 696 " + user.getNick() + " :Invalid limit");
+                return;
+            }
+            channel->setUserLimit(limit);
         }
-        int limit = std::atoi(msg._params[2].c_str());
-        if (limit <= 0)
-        {
-            sendToClient(user, ":ircserv 696 " + user.getNick() + " :Invalid limit");
-            return;
-        }
-        channel->setUserLimit(limit);
         else
         {
             channel->removeUserLimit();
