@@ -572,6 +572,15 @@ void Server::handleMODE(User& user, const Message& msg)
             channel->removeUserLimit();
         }
     }
+    /*
+    - verif si param < 3
+    - verif si nick existe dans _userByNick
+    - recuperer ma targetUser
+    - verif si targetUser est bien dans le channel
+    - si +o je addOperator(targetUser)
+    - si -o je remove
+    
+    */
     else
     {
         std::string badMode(1, modeString[1]);
@@ -599,6 +608,7 @@ TO DO:
 - k --> mettre ou enlever mdp pour le channel
 - l --> donner ou enlever droit operator a un user
 - o --> mettre ou enlever nb de user limit par channel
+    MODE #chan +o nick
 - Update handleJOIN suite a handleMODE -t
 - Update handleINVITE suite a handleMODE -i
 - Update disconnectClient
