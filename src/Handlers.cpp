@@ -591,7 +591,7 @@ void Server::handleMODE(User& user, const Message& msg)
         const std::string& targetNick = msg._params[2];
         if (_usersByNick.count(targetNick) == 0)
         {
-            sendToClient(user, ":ircserv 401 " + user.getNick() + " " + target + " PRIVMSG :No such nick/channel");
+            sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " PRIVMSG :No such nick/channel");
             return;
         }
         User* targetUser = _usersByNick[targetNick];
@@ -616,6 +616,8 @@ void Server::handleMODE(User& user, const Message& msg)
     if (mode == 'k' && sign == '+')
         modeMsg += " " + msg._params[2];
     if (mode == 'l' && sign == '+')
+        modeMsg += " " + msg._params[2];
+    if (mode == 'o')
         modeMsg += " " + msg._params[2];
     const std::set<User*>& users = channel->getUsers();
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
