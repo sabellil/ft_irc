@@ -176,6 +176,12 @@ void Server::handleJOIN(User& user, const Message& msg)
     if (!requireRegistered(user))
         return;
 
+    if (channel->hasUserLimit() && channel->getUsers().size() >= (size_t)channel->getUserLimit())
+    {
+        sendToClient(user, ":ircserv 471 " + user.getNick() + " " + channelName + " :Channel is full");
+        return;
+    }
+
     if (msg._params.empty())
     {
         sendToClient(user, ":ircserv 461 " + user.getNick() + " JOIN :Not enough parameters");
@@ -547,6 +553,25 @@ void Server::handleMODE(User& user, const Message& msg)
             channel->removeKey();
         }
     }
+    else if (mode == 'l')
+    {
+        if (msg._params.size() < 3)
+        {
+            sendToClient(user, ":ircserv 461 " + user.getNick() + " MODE :Not enough parameters");
+            return;
+        }
+        int limit = std::atoi(msg._params[2].c_str());
+        if (limit <= 0)
+        {
+            sendToClient(user, ":ircserv 696 " + user.getNick() + " :Invalid limit");
+            return;
+        }
+        channel->setUserLimit(limit);
+        else
+        {
+            channel->removeUserLimit();
+        }
+    }
     else
     {
         std::string badMode(1, modeString[1]);
@@ -556,6 +581,8 @@ void Server::handleMODE(User& user, const Message& msg)
 
     std::string modeMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost MODE " + channelName + " " + modeString;
     if (mode == 'k' && sign == '+')
+        modeMsg += " " + msg._params[2];
+    if (mode == 'l' && sign == '+')
         modeMsg += " " + msg._params[2];
     const std::set<User*>& users = channel->getUsers();
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
