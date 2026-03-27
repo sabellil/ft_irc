@@ -574,13 +574,37 @@ void Server::handleMODE(User& user, const Message& msg)
     }
     /*
     - verif si param < 3
-    - verif si nick existe dans _userByNick
+    - verif si nick existe dans _usersByNick
     - recuperer ma targetUser
     - verif si targetUser est bien dans le channel
     - si +o je addOperator(targetUser)
     - si -o je remove
     
     */
+    else if (mode == 'o')
+    {
+        if (msg._params.size() < 3)
+        {
+            sendToClient(user, ":ircserv 461 " + user.getNick() + " MODE :Not enough parameters");
+            return;
+        }
+        const std::string& targetNick = msg._params[2];
+        if (_usersByNick.count(targetNick) == 0)
+        {
+            sendToClient(user, ":ircserv 401 " + user.getNick() + " " + target + " PRIVMSG :No such nick/channel");
+            return;
+        }
+        User* targetUser = _usersByNick[targetNick];
+        if (!channel->hasUser(targetUser))
+        {
+            sendToClient(user, ":ircserv 441 " + user.getNick() + " " + targetNick + " " + channelName + " :They aren't on that channel");
+            return;
+        }
+        if (sign == '+')
+            channel->addOperator(targetUser);
+        else
+            channel->removeOperator(targetUser);
+    }
     else
     {
         std::string badMode(1, modeString[1]);
