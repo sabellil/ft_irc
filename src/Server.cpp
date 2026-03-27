@@ -70,10 +70,21 @@ void Server::onClientRead(int clientFd)
     processInputBuffer(*user);
 }
  
-void    Server::disconnectClient(int clientFd) {
-
+void    Server::disconnectClient(int clientFd)
+{
+    std::map<int, User*>::iterator userIt = _usersByFd.find(clientFd);
+    if (userIt == _usersByFd.end())//verifie si le clientFd correspond bien a un user existant
+        return;
+    User* user = userIt->second;
+    if (!user->getNick().empty())//verifie si le user a un nick avant de le supprimer. Empty test dans le cas d'une deconnection avant d'avoir choiss son nick
+        _usersByNick.erase(user->getNick);
         //vire le fd du pollFd
-        for (std::vector<pollfd>::iterator it = _pollFds.begin(); it != _pollFds.end(); ++it) {
+    for (std::map<std::string, Channel*>::iterator chanIt = _channels.begin(); chanIt != _channels.end();)//on parcourt tous nos channels
+    {
+        Channel* channel = chanIt->second;//je recupere mon channel courant
+
+    }
+    for (std::vector<pollfd>::iterator it = _pollFds.begin(); it != _pollFds.end(); ++it) {
 
             if ( it -> fd == clientFd) {
                 _pollFds.erase(it);
@@ -92,6 +103,12 @@ void    Server::disconnectClient(int clientFd) {
 /*
 SARA --> a partager plus tard
 On nettoie pas _usersByNick, les channels ou le users est present, le soeprateurs si le user etait op, les inve
+
+Pointeurs morts dans _usersNick _channels _users _operators _invitedUsers
+Logique : retrouver user* > enlever de _usersByNick > enlever tous les channels > enlever des operators si jamais ya besoin
+> enlever des invites si besoin > supprimer les eventuels channels vides
+
+
 */
 
 //Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC

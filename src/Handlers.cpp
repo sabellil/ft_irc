@@ -202,16 +202,32 @@ void Server::handleJOIN(User& user, const Message& msg)
     {
         channel = _channels[channelName];
     }
+    if (channel->hasUser(&user))
+        return;
+
     if (channel->hasUserLimit() && channel->getUsers().size() >= (size_t)channel->getUserLimit())
     {
         sendToClient(user, ":ircserv 471 " + user.getNick() + " " + channelName + " :Channel is full");
         return;
     }
-
-    if (channel->hasUser(&user))
+    if (!isNewChannel && channel->isInviteOnly() && !channel->isInvited(&user))
+    {
+        sendToClient(user, ":ircserv 473 " + user.getNick() + " " + channelName + " :Cannot join channel (+i)");
         return;
+    }
+    if (!isNewChannel && channel->hasKey())
+    {
+        if (msg._params.size() < 2 || msg._params[1] != channel->getKey())
+        {
+            sendToClient(user, ":ircserv 475 " + user.getNick() + " " + channelName + " :Cannot join channel (+k)");
+            return;
+        }
+    }
+ 
 
     channel->addUser(&user);
+    channel->removeInvite(&user);
+
     if (isNewChannel)
         channel->addOperator(&user);
 
