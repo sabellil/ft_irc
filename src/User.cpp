@@ -29,6 +29,7 @@ void User::setNick(const std::string& nickname)
     _nick = nickname;
 }
 
+
 void User::setUsername(const std::string& username)
 {
     _username = username;
