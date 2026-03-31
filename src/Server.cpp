@@ -169,8 +169,8 @@ void Server::initServerFd()
     if (listen (_serverFd, 10) < 0 )
     {
         close(_serverFd);
-        throw std::logic_error("deaf port. Cannot launch server. ");
         _serverFd = -1;
+        throw std::logic_error("Fail listen. Cannot launch server. ");
     }
 }
 
@@ -206,7 +206,10 @@ void Server::run()
                 // std::cerr << "message d'erreur" << std::endl;
                 // couper la connexion+ remove fd + client
                 if (fd != _serverFd)
+                {
                     disconnectClient(fd);
+                    --i;
+                }
                 continue;
             }
             //  NOUVELLE CONNEXION 
@@ -236,7 +239,10 @@ void Server::run()
             //  MESSAGE CLIENT
             else if (revents & POLLIN)
             {
+                size_t oldSize = _pollFds.size();
                 onClientRead(fd);
+                if (_pollFds.size() < oldSize)
+                    --i;
             }
         }
     }
