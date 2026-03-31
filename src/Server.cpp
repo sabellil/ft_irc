@@ -15,6 +15,7 @@
 #include <netdb.h>
 #include <fcntl.h> //manip des fd (get ou set options)
 #include <arpa/inet.h> //ai_family
+#include <cerrno>
 
 Server::Server(char * raw_port, const std::string& password)
 : _raw_port(raw_port),
@@ -174,8 +175,6 @@ void Server::initServerFd()
     }
 }
 
-
-
 void Server::run()
 {
     std::cout << "Starting new server. \nPort: " << this->_port 
@@ -192,7 +191,12 @@ void Server::run()
         // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
         int pollReturn = poll(&_pollFds[0], _pollFds.size(), 2000);
         if (pollReturn < 0)
+        {
+            if (errno == EINTR)//cas ctrl c pour dire que c'est un arret normal e tpas un crash
+                break;
             throw std::logic_error("poll() failed");
+
+        }
         if (pollReturn == 0)
             continue;
         for (size_t i = 0; i < _pollFds.size(); ++i)
