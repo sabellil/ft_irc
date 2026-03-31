@@ -33,6 +33,8 @@ void Channel::addUser(User* user)
 void Channel::removeUser(User* user)
 {
     _users.erase(user);
+    _operators.erase(user);
+    _invitedUsers.erase(user);
 }
 
 const std::set<User*>& Channel::getUsers() const

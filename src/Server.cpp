@@ -66,11 +66,7 @@ void    Server::disconnectClient(int clientFd)
     {
         Channel* channel = chanIt->second;//je recupere mon channel courant
         if (channel->hasUser(user))//retirer le user du channel
-        {
             channel->removeUser(user);
-            channel->removeOperator(user);
-            channel->removeInvite(user);
-        }
         if (channel->getUsers().empty())//retirer les objets channels vides
         {
             delete channel;
@@ -92,8 +88,8 @@ void    Server::disconnectClient(int clientFd)
 
     }
     close(clientFd);
-    delete user;
     _usersByFd.erase(userIt);
+    delete user;
     std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
 }
 
