@@ -28,7 +28,7 @@ public:
     void                              dispatchCommand(User& user, const Message& msg);//TEMPORAIREMENT EN PUBLIC
     void                              tryRegister(User& user);
     void                              sendToClient(User& user, const std::string& message);
-    
+    void                              handlePING(User& user, const Message& msg);
 
 private:    
     char *                            _raw_port;

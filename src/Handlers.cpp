@@ -31,8 +31,20 @@ void Server::dispatchCommand(User& user, const Message& msg)
         handleTOPIC(user, msg);
     else if (cmd == "MODE")
         handleMODE(user, msg);
+    else if (cmd == "PING")
+        handlePING(user, msg);
     else
         handleUnknown(user, msg);
+}
+
+void Server::handlePING(User& user, const Message& msg)//on garde la connexion vivante
+{
+    if (!msg._trailing.empty())
+        sendToClient(user, ":ircserv PONG :" + msg._trailing);
+    else if (!msg._params.empty())
+        sendToClient(user, ":ircserv PONG :" + msg._params[0]);
+    else
+        sendToClient(user, ":ircserv PONG :ircserv");
 }
 
 std::string Server::getClientName(const User& user) const
@@ -173,7 +185,7 @@ void Server::tryRegister(User& user)
     if (!user.hasUser())
         return;
     user.setRegistered(true);
-    std::cout << "User registered:" << user.getNick() << "( "<< user.getUsername() <<")" << std::endl;
+    std::cout << "User registered:" << user.getNick() << " ("<< user.getUsername() <<")" << std::endl;
     sendToClient(user, ":ircserv 001 " + getClientName(user) + " :Welcome to the IRC server");
 }
 
