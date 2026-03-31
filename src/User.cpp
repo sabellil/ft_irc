@@ -3,7 +3,6 @@
 #include "../include/User.hpp"
 #include "../include/Message.hpp"
 
-
 User::User(int fd) : _fd(fd), _nick(""), _username(""), _hasPass(false), _hasNick(false), _hasUser(false), _registered(false), _inbuf(""), _outbuf("") {
     std::cout << "--> User created for fd : " << _fd << std::endl;
 }
