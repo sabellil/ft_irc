@@ -157,6 +157,7 @@ void Server::initServerFd()
     if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
     {
         freeaddrinfo(result);
+        close(_serverFd);
         throw std::logic_error("Fail setsockopt. Cannot launch server.");
     }
     if (bind(_serverFd, result->ai_addr, result->ai_addrlen) < 0 ) {
@@ -169,6 +170,7 @@ void Server::initServerFd()
     {
         close(_serverFd);
         throw std::logic_error("deaf port. Cannot launch server. ");
+        _serverFd = -1;
     }
 }
 
