@@ -115,13 +115,18 @@ void Server::handleNICK(User& user, const Message& msg)
         sendToClient(user, ":ircserv 433 " + getClientName(user) + " " + newNick + " :Nickname is already in use");
         return;
     }
-
-    if (!user.getNick().empty())//si le client a deja un username on l'erase proprement
-        _usersByNick.erase(user.getNick());
+    std::string oldNick = user.getNick();
+    if (!oldNick.empty())
+        _usersByNick.erase(oldNick);
 
     user.setNick(newNick);
     user.setHasNick(true);
     _usersByNick[newNick] = &user;//enregistrer que ce nouveau nickname appartient a cet user la
+    if (!oldNick.empty())
+    {
+        std::string nickMsg = ":" + oldNick + "!" + user.getUsername() + "@localhost NICK :" + newNick;
+        sendToClient(user, nickMsg);
+    }
     std::cout << "New nick set to: " << user.getNick() << std::endl;
     tryRegister(user);
 }
