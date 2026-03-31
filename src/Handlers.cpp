@@ -382,6 +382,11 @@ void Server::handleKICK(User& user, const Message& msg)
         sendToClient(**it, kickMsg);
     }
     channel->removeUser(targetUser);
+    if (channel->getUsers().empty())
+    {
+        delete channel;
+        _channels.erase(channelName);
+    }
 }
 
 //INVITE <nick> <channel>
