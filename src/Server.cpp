@@ -191,50 +191,38 @@ void Server::initServerFd()
 void Server::run()
 {
     std::cout << "Starting new server. \nPort: " << this->_port 
-    << "\nPassword: " << this->_password
-    << std::endl;
-
+    << "\nPassword: " << this->_password << std::endl;
     g_run = 1; 
     initServerFd();
     std::cout << GREEN "SERVER LISTENING :" RESET << std::endl;
-    
-    //    struct pollfd {
-    //        int   fd;         /* file descriptor */
-    //        short events;     /* requested events */
-    //        short revents;    /* returned events */
-    //    };
-    // MEMO : pollfd est une structure C, pas un objet CPP
     pollfd pfd_server = {this->_serverFd, POLLIN, 0};
     _pollFds.push_back(pfd_server);
 
     while (g_run == 1)
-    {
-        poll(&_pollFds[0], _pollFds.size(), 2000); // TODO: gestion d'erreur
-        // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
+    {   
         // std::cout << CYAN "Server on ? " << g_run << RESET << std::endl;
-        
-
-/*
-gestion retour de poll
-int return = poll()
-si return < 0 throw de logic_error
-si ret == 0 continue
-*/
-
+        // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
+        int pollReturn = poll(&_pollFds[0], _pollFds.size(), 2000);
+        if (pollReturn < 0)
+            throw std::logic_error("poll() failed");
+        if (pollReturn == 0)
+            continue;
         for (size_t i = 0; i < _pollFds.size(); ++i)
         {
-            pollfd &p = _pollFds[i];
-            if (p.revents == 0)
+            int fd = _pollFds[i].fd;//on avait une reference, je retire car _pollFds peut etre modifie quand on disconnect un client --> dangereux
+            short revents = _pollFds[i]. revents;
+            if (revents == 0)
                 continue; //TODO: pertinence de check meme si revents 0 ? => oui par securite
-            if (p.revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
                 //TODO: gestion des erreurs et clean de fd
                 // std::cerr << "message d'erreur" << std::endl;
                 // couper la connexion+ remove fd + client
-
+                if (fd != _serverFd)
+                    disconnectClient(fd);
                 continue;
             }
             //  NOUVELLE CONNEXION 
-            if (p.fd == _serverFd && (p.revents & POLLIN)) { //formulation bizarre mais en gros POLLIN and co sont des masques
+            if (fd == _serverFd && (revents & POLLIN)) { //formulation bizarre mais en gros POLLIN and co sont des masques
                 
                 struct sockaddr_in client_addr; //TODO importance/utilite d'usage de la structure sockaddress
                 socklen_t addr_size = sizeof(client_addr);
@@ -258,23 +246,26 @@ si ret == 0 continue
                 std::cout << "New client connected: fd " << client_fd << std::endl;
             }
             //  MESSAGE CLIENT
-            else if (p.revents & POLLIN)
+            else if (revents & POLLIN)
             {
-                onClientRead(p.fd);
+                onClientRead(fd);
             }
         }
     }
     std::cout << YELLOW "server timeout" RESET << std::endl;
-    for (std::vector<pollfd>::reverse_iterator it = _pollFds.rbegin(); it != _pollFds.rend(); ++it) { 
-        if (it -> fd != 3) 
-            send(it -> fd, "Serveur Closed. Bye bye !\n", 26, 0); 
-        delete _usersByFd[it -> fd];       
-        _usersByFd.erase(it -> fd); // petit coup de menage
-        close(it -> fd);
-        std::cerr << YELLOW "--> stopping server : Fd " << it -> fd << " Disconnected !" RESET << std::endl;
-        _pollFds.pop_back();
-        /*Usage de disconnectClient ici*/
+    for (size_t i = 0; i < _pollFds.size();)
+    {
+        int fd = _pollFds[i].fd;
+        if (fd == _serverFd)
+        {
+            ++i;
+            continue;
+        }
+        send(fd, "Serveur Closed. Bye bye !\n", 26, 0);
+        disconnectClient(fd);
     }
+    close(_serverFd);
+    _pollFds.clear();
 
     std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
 }
