@@ -16,15 +16,6 @@
 #include <fcntl.h> //manip des fd (get ou set options)
 #include <arpa/inet.h> //ai_family
 
-
-Server::Server(int port, const std::string& password)
-: _raw_port(NULL),
-  _port(port),
-  _password(password),
-  _serverFd(-1)
-{
-}
-
 Server::Server(char * raw_port, const std::string& password)
 : _raw_port(raw_port),
   _port(std::atoi(raw_port)),
@@ -44,7 +35,6 @@ void Server::onClientRead(int clientFd)
     if (bytesRead == 0)//le client est deconnecte
     {
         disconnectClient(clientFd);
-        // std::cout << "Client disconnected" << std::endl;
         return;
     }
     if (bytesRead < 0)//erreur pendant la lecture de recv
@@ -58,14 +48,7 @@ void Server::onClientRead(int clientFd)
         std::cout << "ERROR: unknown clientFd in onClientRead" << std::endl;
         return;
     }
-    
-    //DEBUG 
-    // std::cout << "\rClient " << clientFd << ": " << buffer ;
-    // send(clientFd, "PONG\n", 5, 0);
-    // TODO:le buffer se clean pas entre plusieurs clients
-    //DEBUG
-
-    User* user = _usersByFd[clientFd];
+    User* user = it->second;
     user->inbuf().append(buffer, bytesRead);
     processInputBuffer(*user);
 }
@@ -171,7 +154,7 @@ void Server::initServerFd()
     }
     
     int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
-    if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)))
+    if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
     {
         freeaddrinfo(result);
         throw std::logic_error("Fail setsockopt. Cannot launch server.");
@@ -183,7 +166,10 @@ void Server::initServerFd()
     }
     freeaddrinfo(result);
     if (listen (_serverFd, 10) < 0 )
+    {
+        close(_serverFd);
         throw std::logic_error("deaf port. Cannot launch server. ");
+    }
 }
 
 
@@ -210,7 +196,7 @@ void Server::run()
         for (size_t i = 0; i < _pollFds.size(); ++i)
         {
             int fd = _pollFds[i].fd;//on avait une reference, je retire car _pollFds peut etre modifie quand on disconnect un client --> dangereux
-            short revents = _pollFds[i]. revents;
+            short revents = _pollFds[i].revents;
             if (revents == 0)
                 continue; //TODO: pertinence de check meme si revents 0 ? => oui par securite
             if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
