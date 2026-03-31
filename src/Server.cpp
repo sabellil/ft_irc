@@ -210,6 +210,14 @@ void Server::run()
         poll(&_pollFds[0], _pollFds.size(), 2000); // TODO: gestion d'erreur
         // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
         // std::cout << CYAN "Server on ? " << g_run << RESET << std::endl;
+        
+
+/*
+gestion retour de poll
+int return = poll()
+si return < 0 throw de logic_error
+si ret == 0 continue
+*/
 
         for (size_t i = 0; i < _pollFds.size(); ++i)
         {
@@ -220,6 +228,7 @@ void Server::run()
                 //TODO: gestion des erreurs et clean de fd
                 // std::cerr << "message d'erreur" << std::endl;
                 // couper la connexion+ remove fd + client
+
                 continue;
             }
             //  NOUVELLE CONNEXION 
@@ -262,6 +271,7 @@ void Server::run()
         close(it -> fd);
         std::cerr << YELLOW "--> stopping server : Fd " << it -> fd << " Disconnected !" RESET << std::endl;
         _pollFds.pop_back();
+        /*Usage de disconnectClient ici*/
     }
 
     std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
