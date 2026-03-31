@@ -160,7 +160,6 @@ void Server::initServerFd() {
     hints.ai_flags = AI_PASSIVE; // adresse passive = adresse en ecoute donc adresse serveur
 
     if (getaddrinfo(NULL, _raw_port, &hints, &result) != 0 ) {
-        freeaddrinfo(result);
         throw std::logic_error("No port available. Cannot launch server. ");
     }
 
