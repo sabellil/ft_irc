@@ -147,7 +147,8 @@ void Server::processInputBuffer(User& user)
 }
 
 
-void Server::initServerFd() {
+void Server::initServerFd()
+{
 
     struct addrinfo hints; 
     struct addrinfo * result; 
@@ -169,13 +170,15 @@ void Server::initServerFd() {
         throw std::logic_error("Fail socket. Cannot launch server. ");
     }
     
-    int yes = 1;
-    // ci apres, ajout des eventuelles options a config sur la socket
-    // liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
-    setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)); //ok re-use port sur deux serveurs lances successivements
-
+    int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
+    if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)))
+    {
+        freeaddrinfo(result);
+        throw std::logic_error("Fail setsockopt. Cannot launch server.");
+    }
     if (bind(_serverFd, result->ai_addr, result->ai_addrlen) < 0 ) {
         freeaddrinfo(result);
+        close(_serverFd);
         throw std::logic_error("Fail bind. Cannot launch server. ");
     }
     freeaddrinfo(result);
