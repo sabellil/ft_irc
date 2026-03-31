@@ -248,7 +248,7 @@ void Server::handleJOIN(User& user, const Message& msg)
     if (isNewChannel)
         channel->addOperator(&user);
 
-    std::string joinMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost JOIN :" + channelName;
+    std::string joinMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost JOIN " + channelName;
 
     const std::set<User*>& users = channel->getUsers();
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
@@ -285,10 +285,14 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
     const std::string& text = msg._trailing;
 
     std::string fullMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost PRIVMSG " + target + " :" + text;
-
+    std::cout << "Known nicks:" << std::endl;
+    for (std::map<std::string, User*>::iterator it = _usersByNick.begin(); it != _usersByNick.end(); ++it)
+        std::cout << "[" << it->first << "]" << std::endl;
     if (_usersByNick.count(target))
     {
         User* targetUser = _usersByNick[target];
+        std::cout << "PRIVMSG to nick = [" << target << "]" << std::endl;
+        std::cout << "fullMsg = [" << fullMsg << "]" << std::endl;
         sendToClient(*targetUser, fullMsg);
         return;
     }
@@ -310,9 +314,9 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
         }
         return;
     }
-
-    sendToClient(user, ":ircserv 401 " + user.getNick() + " " + target + " PRIVMSG :No such nick/channel");
+    sendToClient(user, ":ircserv 401 " + user.getNick() + " " + target + " :No such nick/channel");
 }
+
 /*
 Rappel process:
 Le client irssi tape --> /msg mike hi whats up
@@ -371,7 +375,7 @@ void Server::handleKICK(User& user, const Message& msg)
 
     std::string kickMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost KICK " + channelName + " " + targetNick;
     if (!msg._trailing.empty())
-        kickMsg != " :" + msg._trailing;
+        kickMsg += " :" + msg._trailing;
     const std::set<User*>& users = channel->getUsers();
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
     {
@@ -427,7 +431,7 @@ void Server::handleINVITE(User& user, const Message& msg)
         return;
     }
     channel->addInvited(targetUser);
-    sendToClient(user, "ircsev 341 " + user.getNick() + " " + targetNick + " " + channelName);
+    sendToClient(user, ":ircsev 341 " + user.getNick() + " " + targetNick + " " + channelName);
     sendToClient(*targetUser, ":" + user.getNick() + "!" + user.getUsername() + "@localhost INVITE " + targetNick + " :" + channelName);
 
 }
@@ -624,7 +628,7 @@ void Server::handleMODE(User& user, const Message& msg)
         const std::string& targetNick = msg._params[2];
         if (_usersByNick.count(targetNick) == 0)
         {
-            sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " PRIVMSG :No such nick/channel");
+            sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " :No such nick");
             return;
         }
         User* targetUser = _usersByNick[targetNick];
