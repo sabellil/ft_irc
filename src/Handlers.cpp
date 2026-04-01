@@ -33,6 +33,8 @@ void Server::dispatchCommand(User& user, const Message& msg)
         handleMODE(user, msg);
     else if (cmd == "PING")
         handlePING(user, msg);
+    else if (cmd == "PART")
+        handlePART(user, msg);
     else
         handleUnknown(user, msg);
 }
