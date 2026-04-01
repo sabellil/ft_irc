@@ -288,7 +288,6 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
     const std::string& text = msg._trailing;
 
     std::string fullMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost PRIVMSG " + target + " :" + text;
-    std::cout << "Known nicks:" << std::endl;
     for (std::map<std::string, User*>::iterator it = _usersByNick.begin(); it != _usersByNick.end(); ++it)
         std::cout << "[" << it->first << "]" << std::endl;
     if (_usersByNick.count(target))
@@ -617,15 +616,6 @@ void Server::handleMODE(User& user, const Message& msg)
             channel->removeUserLimit();
         }
     }
-    /*
-    - verif si param < 3
-    - verif si nick existe dans _usersByNick
-    - recuperer ma targetUser
-    - verif si targetUser est bien dans le channel
-    - si +o je addOperator(targetUser)
-    - si -o je remove
-    
-    */
     else if (mode == 'o')
     {
         if (msg._params.size() < 3)
@@ -670,7 +660,15 @@ void Server::handleMODE(User& user, const Message& msg)
         sendToClient(**it, modeMsg);
     }
 }
-
+    /*
+    - verif si param < 3
+    - verif si nick existe dans _usersByNick
+    - recuperer ma targetUser
+    - verif si targetUser est bien dans le channel
+    - si +o je addOperator(targetUser)
+    - si -o je remove
+    
+    */
 
 /*
 TO DO:
@@ -686,6 +684,47 @@ TO DO:
 
 */
 
+void Server::handlePART(User& user, const Message& msg)
+{
+    std::cout << "DEBUG: handlePART called" << std::endl;
+
+    if (!requireRegistered(user))
+        return;
+
+    if (msg._params.empty())
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " PART :Not enough parameters");
+        return;
+    }
+
+    const std::string& channelName = msg._params[0];
+
+    if (_channels.count(channelName) == 0)
+    {
+        sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
+        return;
+    }
+
+    Channel* channel = _channels[channelName];
+
+    if(!channel->hasUser(&user))
+    {
+        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
+        return;
+    }
+    std::string partMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost PART " + channelName;
+    if (!msg._trailing.empty())
+        partMsg += " :" + msg._trailing;
+    const std::set<User*>& users = channel->getUsers();
+    for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+        sendToClient(**it, partMsg);
+    channel->removeUser(&user);
+    if(channel->getUsers().empty())
+    {
+        delete channel;
+        _channels.erase(channelName);
+    }
+}
 
 void Server::handleUnknown(User& user, const Message& msg)
 {

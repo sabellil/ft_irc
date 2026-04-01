@@ -50,9 +50,10 @@ private:
     void                              handleINVITE(User&, const Message&);
     void                              handleTOPIC(User&, const Message&);
     void                              handleMODE(User&, const Message&);
+    void                              handlePART(User&, const Message&);
     void                              handleUnknown(User&, const Message&);
     bool                              requireRegistered(User& user);
-    void                               initServerFd();
+    void                              initServerFd();
     
     
 
