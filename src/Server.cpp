@@ -150,7 +150,14 @@ void Server::initServerFd()
         throw std::logic_error("Fail socket. Cannot launch server. ");
     }
 
-    /*Ajout d'un bloc verif fcntl ici comme dnas run ? */
+    /*Ajout d'un bloc verif fcntl ici comme dnas run ? TODO MADDY */
+                //     if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)//on tente de mettre la socket du client en mode non bloquant 
+                // {
+                        // freeaddrinfo(result);
+                //     close(client_fd);
+                //     _serverFd = -1;
+                //     throw std::logic_error("cannot setup socket as nonblock "); 
+                // }
     
     int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
     if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
@@ -204,11 +211,8 @@ void Server::run()
             short revents = _pollFds[i].revents;
     
             if (revents == 0)
-                continue; //TODO: pertinence de check meme si revents 0 ? => oui par securite
+                continue;
             if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                //TODO: gestion des erreurs et clean de fd
-                // std::cerr << "message d'erreur" << std::endl;
-                // couper la connexion+ remove fd + client
                 /*
                 POLLHUP client a ferme la co --> disconnectClient
                 POLLER erreur sur la socket style probleme reseau == > fermer nettoyer 
@@ -239,7 +243,6 @@ void Server::run()
                 if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)//on tente de mettre la socket du client en mode non bloquant 
                 {
                     close(client_fd);
-                    _serverFd = -1;
                     throw std::logic_error("cannot setup socket as nonblock "); 
                 }
 
@@ -273,7 +276,6 @@ void Server::run()
             ++i;
             continue;
         }
-        send(fd, "Serveur Closed. Bye bye !\n", 26, 0);
         disconnectClient(fd);
     }
     close(_serverFd);
@@ -281,59 +283,6 @@ void Server::run()
 
     std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
 }
-//post repas
-//regarder les details de sockaddr_in et voir ce que je peux recup pour remplir mon user.
 
-
-// /* Structure describing an Internet socket address.  */
-// struct sockaddr_in
-//   {
-//     __SOCKADDR_COMMON (sin_);
-//     in_port_t sin_port;			/* Port number.  */
-//     struct in_addr sin_addr;		/* Internet address.  */
-
-//     /* Pad to size of `struct sockaddr'.  */
-//     unsigned char sin_zero[sizeof (struct sockaddr)
-// 			   - __SOCKADDR_COMMON_SIZE
-// 			   - sizeof (in_port_t)
-// 			   - sizeof (struct in_addr)];
-//   };
-
-// #if !__USE_KERNEL_IPV6_DEFS
-// /* Ditto, for IPv6.  */
-// struct sockaddr_in6
-//   {
-//     __SOCKADDR_COMMON (sin6_);
-//     in_port_t sin6_port;	/* Transport layer port # */
-//     uint32_t sin6_flowinfo;	/* IPv6 flow information */
-//     struct in6_addr sin6_addr;	/* IPv6 address */
-//     uint32_t sin6_scope_id;	/* IPv6 scope-id */
-//   };
-// #endif /* !__USE_KERNEL_IPV6_DEFS */
-
-    // while(_running)
-    // {
-        
-        // poll(&_pollFds[0], _pollFds.size(), -1); //-1 = pas de timeout
-        // std::cout << GREEN "\npoll ok !!" RESET << std::endl;
-        // for (size_t i = 0; i < _pollFds.size(); ++i)//parocurir tous les descripteurs surveilles par poll
-        // {
-            //IF aucun event sur ce fd --> next one 
-            //IF erreur sur ce fd= connexion cassee (POLLERR POLLHUP POLLNVAL) https://man7.org/linux/man-pages/man2/poll.2.html
-                //fermer la connexion 
-                //supprimer le client de l structure _usersbyFd
-                //supprimer le fd de _pollFds
-            //IF p.fd est fd du serveur + POLLIN = un nouveau client essaye de se connecter
-                //accept() --> renvoie le nouveua fd http://manpagesfr.free.fr/man/man2/accept.2.html
-                //remplir la structure User pour ce client
-                //ajouter son fd a pollFds
-                //on est sur le fd du serveur, on relance un coup ce process pour check si de nouveaux clients sont la
-
-            //IF p.fd != fd du serveur + POLLIN = on a un client existant qui tente d'interargir
-                //Demarrage du parsing(p.fd) --> emporte tous les elements du client TO DO START OF PARSING
-                // onClientRead(p.fd);
-//         }
-//     }
-// }
 
 
