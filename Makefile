@@ -25,7 +25,7 @@ all: $(NAME)
 	@echo "All good ! Use ./$(NAME) <port> <password> to start the program "
 	@echo "<port> : number between 1 and 65535"
 	@echo "<password> : string of 4 printable char minimum (no space) "
-	@echo "Quit the program with ctrl+c or ctrl+\ "
+	@echo "Quit the program with ctril+z, ctrl+c or ctrl+\ "
 	@echo "-----"
 .PHONY: all
 

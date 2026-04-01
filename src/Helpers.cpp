@@ -28,7 +28,8 @@ void    check_arg(int ac, char **av) {
 
 void    sigStopHandler(int signum) {
     
-    std::cerr << YELLOW "\rInterruption du serveur par signal " RESET << signum << std::endl; 
+    (void)signum;
+    std::cerr << BLUE " \r" RESET ; 
     // \r == le curseur revient au tout debut de la ligne (meme si des trucs sont deja ecrits, cheh le chapo C)
     g_run = 0;
     return;

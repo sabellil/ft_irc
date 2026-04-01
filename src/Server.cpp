@@ -158,7 +158,7 @@ void Server::initServerFd()
     }
     
     int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
-    if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
+    if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) //TODO check cas reuse port impossible (rare)
     {
         freeaddrinfo(result);
         close(_serverFd);
@@ -191,10 +191,8 @@ void Server::run()
     pollfd pfd_server = {this->_serverFd, POLLIN, 0};
     _pollFds.push_back(pfd_server);
 
-    while (g_run == 1)
+    while (g_run == 1) 
     {   
-        // std::cout << CYAN "Server on ? " << g_run << RESET << std::endl;
-        // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
         int pollReturn = poll(&_pollFds[0], _pollFds.size(), 2000);
         if (pollReturn < 0)
         {

@@ -34,7 +34,8 @@ int main(int ac, char **av) {
     try {
         check_arg(ac, av);
         signal(SIGINT, sigStopHandler); // ctrl + c
-        signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
+        signal(SIGQUIT, sigStopHandler);// 'ctrl + \'
+        signal(SIGTSTP, sigStopHandler);// ctrl + z 
 
         Server server(av[1], av[2]);
         server.run();
