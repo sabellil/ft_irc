@@ -199,17 +199,22 @@ void Server::run()
         {
             int fd = _pollFds[i].fd;//on avait une reference, je retire car _pollFds peut etre modifie quand on disconnect un client --> dangereux
             short revents = _pollFds[i].revents;
+    
             if (revents == 0)
                 continue; //TODO: pertinence de check meme si revents 0 ? => oui par securite
             if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
                 //TODO: gestion des erreurs et clean de fd
                 // std::cerr << "message d'erreur" << std::endl;
                 // couper la connexion+ remove fd + client
-                if (fd != _serverFd)
-                {
-                    disconnectClient(fd);
-                    --i;
-                }
+                /*
+                POLLHUP client a ferme la co --> disconnectClient
+                POLLER erreur sur la socket style probleme reseau == > fermer nettoyer 
+                POLLNVAL fd invalide deja ferme, corrompu etc --> retirer nettoyer 
+                */
+                if (fd == _serverFd)
+                    throw std::logic_error("server socket poll error");
+                disconnectClient(fd);
+                --i;
                 continue;
             }
             //  NOUVELLE CONNEXION 
@@ -220,7 +225,10 @@ void Server::run()
                 
                 int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);
                 if (client_fd < 0)
+                {
                     throw std::logic_error("fail connexion client => accept() error "); 
+
+                }
                     
                 if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
                     throw std::logic_error("cannot setup socket as nonblock "); 
