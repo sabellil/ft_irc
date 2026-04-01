@@ -15,9 +15,12 @@ private:
     bool                _hasNick;
     bool                _hasUser;
     bool                _registered;
+    bool                _shouldDisconnect;
 
     std::string         _inbuf;//s'assurer d'aller jusqu'au \r\n et d'avoir toute la ligne
     std::string         _outbuf;
+
+
 
 
 public:
@@ -45,6 +48,8 @@ public:
 
     bool                isRegistered() const;//client bien enregistre sur le serveur irc?
     void                setRegistered(bool value);
+    bool                shouldDisconnect() const;
+    void                setShouldDisconnect(bool value);
 
 };
 #endif

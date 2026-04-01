@@ -86,3 +86,12 @@ void User::setHasPass(bool value)
     _hasPass = value;
 }
 
+bool User::shouldDisconnect() const
+{
+    return _shouldDisconnect;
+}
+
+void User::setShouldDisconnect(bool value)
+{
+    _shouldDisconnect = value;
+}
