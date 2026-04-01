@@ -150,25 +150,25 @@ void Server::initServerFd()
         throw std::logic_error("Fail socket. Cannot launch server. ");
     }
 
-    /*Ajout d'un bloc verif fcntl ici comme dnas run ? TODO MADDY */
-                //     if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)//on tente de mettre la socket du client en mode non bloquant 
-                // {
-                        // freeaddrinfo(result);
-                //     close(client_fd);
-                //     _serverFd = -1;
-                //     throw std::logic_error("cannot setup socket as nonblock "); 
-                // }
+    if (fcntl(_serverFd , F_SETFL, O_NONBLOCK) == -1) { //on tente de mettre la socket serv en mode non bloquant 
+        freeaddrinfo(result);
+        close(_serverFd);
+        _serverFd = -1;
+        throw std::logic_error("cannot setup server socket as nonblock "); 
+    }
     
     int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
     if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
     {
         freeaddrinfo(result);
         close(_serverFd);
+        _serverFd = -1;
         throw std::logic_error("Fail setsockopt. Cannot launch server.");
     }
     if (bind(_serverFd, result->ai_addr, result->ai_addrlen) < 0 ) {
         freeaddrinfo(result);
         close(_serverFd);
+        _serverFd = -1;
         throw std::logic_error("Fail bind. Cannot launch server. ");
     }
     freeaddrinfo(result);
