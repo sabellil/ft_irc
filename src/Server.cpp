@@ -149,6 +149,8 @@ void Server::initServerFd()
         freeaddrinfo(result);
         throw std::logic_error("Fail socket. Cannot launch server. ");
     }
+
+    /*Ajout d'un bloc verif fcntl ici comme dnas run ? */
     
     int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
     if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
@@ -218,20 +220,27 @@ void Server::run()
                 continue;
             }
             //  NOUVELLE CONNEXION 
-            if (fd == _serverFd && (revents & POLLIN)) { //formulation bizarre mais en gros POLLIN and co sont des masques
-                
-                struct sockaddr_in client_addr; //TODO importance/utilite d'usage de la structure sockaddress
-                socklen_t addr_size = sizeof(client_addr);
-                
-                int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);
-                if (client_fd < 0)
-                {
-                    throw std::logic_error("fail connexion client => accept() error "); 
+            if (fd == _serverFd && (revents & POLLIN))
+            { //formulation bizarre mais en gros POLLIN and co sont des masques
 
+                struct sockaddr_in client_addr; //TODO importance/utilite d'usage de la structure sockaddress
+
+                socklen_t addr_size = sizeof(client_addr);
+        
+                int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);//J'accepte une nouvelle connexion entrante
+                if (client_fd < 0)//si accept echoue
+                {
+                    if (errno == EAGAIN || errno == EWOULDBLOCK)//si l'echec vient de ya en fait aucune connexion prete mtn = ressaye + tard
+                        continue;
+                    throw std::logic_error("fail connexion client => accept() error "); //sinon si vraie erreur on stop le sevreur
                 }
                     
-                if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
+                if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)//on tente de mettre la socket du client en mode non bloquant 
+                {
+                    close(client_fd);
+                    _serverFd = -1;
                     throw std::logic_error("cannot setup socket as nonblock "); 
+                }
 
                 struct pollfd newFdToPoll;
                 newFdToPoll.fd = client_fd;
