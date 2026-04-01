@@ -52,6 +52,8 @@ void Server::onClientRead(int clientFd)
     User* user = it->second;
     user->inbuf().append(buffer, bytesRead);
     processInputBuffer(*user);
+    if (_usersByFd.count(clientFd) && user->shouldDisconnect())
+        disconnectClient(clientFd);
 }
  
 void    Server::disconnectClient(int clientFd)
@@ -123,6 +125,8 @@ void Server::processInputBuffer(User& user)
             continue;
 
         dispatchCommand(user, msg);
+        if (user.shouldDisconnect())
+            return;
     }
 }
 

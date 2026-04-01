@@ -100,6 +100,7 @@ void Server::handlePASS(User& user, const Message& msg)
     {
         std::cout << "ERROR: wrong password!!!!! Try again" << std::endl;
         sendToClient(user, ":ircserv 464 " + getClientName(user) + " PASS :Password incorrect");
+        user.setShouldDisconnect(true);
         return;
     }
     user.setHasPass(true);
