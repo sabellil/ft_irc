@@ -35,6 +35,8 @@ void Server::dispatchCommand(User& user, const Message& msg)
         handlePING(user, msg);
     else if (cmd == "PART")
         handlePART(user, msg);
+    else if (cmd == "CAP")
+        return;
     else
         handleUnknown(user, msg);
 }
@@ -58,16 +60,6 @@ std::string Server::getClientName(const User& user) const
     return user.getNick();
 }
 
-// void Server::sendToClient(User& user, const std::string& message)
-// {
-//     std::string fullMessage = message + "\r\n";
-//     ssize_t bytes = send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
-//     if (bytes < 0)
-//     {
-//         std::cerr << "Error sending message to client" << std::endl;
-//     }
-// }
-
 void Server::sendToClient(User& user, const std::string& message)
 {
     user.outbuf() += message + "\r\n";
@@ -81,7 +73,6 @@ void Server::sendToClient(User& user, const std::string& message)
         }
     }
 }
-
 //Envoyer au client ce qui est stocker dans son buffer de sortie
 void Server::flushClientOutput(int clientFd)
 {
@@ -347,8 +338,8 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
     const std::string& text = msg._trailing;
 
     std::string fullMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost PRIVMSG " + target + " :" + text;
-    for (std::map<std::string, User*>::iterator it = _usersByNick.begin(); it != _usersByNick.end(); ++it)
-        std::cout << "[" << it->first << "]" << std::endl;
+    // for (std::map<std::string, User*>::iterator it = _usersByNick.begin(); it != _usersByNick.end(); ++it)
+    //     std::cout << "[" << it->first << "]" << std::endl;
     if (_usersByNick.count(target))
     {
         User* targetUser = _usersByNick[target];

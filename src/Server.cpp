@@ -15,7 +15,6 @@
 #include <netdb.h>
 #include <fcntl.h> //manip des fd (get ou set options)
 #include <arpa/inet.h> //ai_family
-#include <cerrno>
 
 Server::Server(char * raw_port, const std::string& password)
 : _raw_port(raw_port),
@@ -271,12 +270,16 @@ void Server::processInputBuffer(User& user)
 
     while (true)
     {
-        size_t pos = buf.find("\r\n");
+        size_t pos = buf.find("\n");
         if (pos == std::string::npos)
             break;
 
         line = buf.substr(0, pos);
-        buf.erase(0, pos + 2);
+        buf.erase(0, pos + 1);
+
+        if (!line.empty() && line[line.size() -1] == '\r')
+            line.erase(line.size() - 1);
+        
         Message msg;
         if (!msg.parse(line))
             continue;
