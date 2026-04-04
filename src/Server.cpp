@@ -27,109 +27,6 @@ Server::Server(char * raw_port, const std::string& password)
 
 Server::~Server() {}
 
-//Lit les octets envoyes par recv(), les ajoute au buffer puis declenche traitement du parsing
-void Server::onClientRead(int clientFd)
-{
-    char buffer[4096];
-
-    int bytesRead = recv(clientFd, buffer, sizeof(buffer), 0);
-    if (bytesRead == 0)//le client est deconnecte
-    {
-        disconnectClient(clientFd);
-        return;
-    }
-    if (bytesRead < 0)//erreur pendant la lecture de recv
-    {
-        std::cout << "ERROR: recv failed" << std::endl;
-        return;
-    }
-    std::map<int, User*>::iterator it = _usersByFd.find(clientFd);
-    if (it == _usersByFd.end() || it->second == NULL)//clientFd pas reconnu ou pas associe a un User valide
-    {
-        std::cout << "ERROR: unknown clientFd in onClientRead" << std::endl;
-        return;
-    }
-    User* user = it->second;
-    user->inbuf().append(buffer, bytesRead);
-    processInputBuffer(*user);
-    if (_usersByFd.count(clientFd) && user->shouldDisconnect())
-        disconnectClient(clientFd);
-}
- 
-void    Server::disconnectClient(int clientFd)
-{
-    std::map<int, User*>::iterator userIt = _usersByFd.find(clientFd);
-    if (userIt == _usersByFd.end())//verifie si le clientFd correspond bien a un user existant
-        return;
-    User* user = userIt->second;
-    if (!user->getNick().empty())//verifie si le user a un nick avant de le supprimer. Empty test dans le cas d'une deconnection avant d'avoir choiss son nick
-        _usersByNick.erase(user->getNick());
-    for (std::map<std::string, Channel*>::iterator chanIt = _channels.begin(); chanIt != _channels.end(); )//on parcourt tous nos channels
-    {
-        Channel* channel = chanIt->second;//je recupere mon channel courant
-        if (channel->hasUser(user))//retirer le user du channel
-            channel->removeUser(user);
-        if (channel->getUsers().empty())//retirer les objets channels vides
-        {
-            delete channel;
-            std::map<std::string, Channel*>::iterator toErase = chanIt++;
-            _channels.erase(toErase);
-        }
-        else//si pas vide je passe a la suite
-        {
-            ++chanIt;
-        }
-    }
-    for (std::vector<pollfd>::iterator it = _pollFds.begin(); it != _pollFds.end(); ++it)//nettoyer notre vector pollfds
-    {
-        if (it->fd == clientFd)
-        {
-            _pollFds.erase(it);
-            break;
-        }
-
-    }
-    close(clientFd);
-    _usersByFd.erase(userIt);
-    delete user;
-    std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
-}
-
-/*
-SARA --> a partager plus tard
-On nettoie pas _usersByNick, les channels ou le users est present, le soeprateurs si le user etait op, les inve
-
-Pointeurs morts dans _usersNick _channels _users _operators _invitedUsers
-Logique : retrouver user* > enlever de _usersByNick > enlever tous les channels > enlever des operators si jamais ya besoin
-> enlever des invites si besoin > supprimer les eventuels channels vides
-
-
-*/
-
-//Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
-void Server::processInputBuffer(User& user)
-{
-    std::string& buf = user.inbuf();
-    std::string line;
-
-    while (true)
-    {
-        size_t pos = buf.find("\r\n");
-        if (pos == std::string::npos)
-            break;
-
-        line = buf.substr(0, pos);
-        buf.erase(0, pos + 2);
-        Message msg;
-        if (!msg.parse(line))
-            continue;
-
-        dispatchCommand(user, msg);
-        if (user.shouldDisconnect())
-            return;
-    }
-}
-
 
 void Server::initServerFd()
 {
@@ -154,7 +51,13 @@ void Server::initServerFd()
         throw std::logic_error("Fail socket. Cannot launch server. ");
     }
 
-    /*Ajout d'un bloc verif fcntl ici comme dnas run ? */
+    if (fcntl(_serverFd, F_SETFL, O_NONBLOCK))
+    {
+        freeaddrinfo(result);
+        close(_serverFd);
+        throw std::logic_error("Fail fcntl. Cannot launch server. ");
+    }
+
     
     int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
     if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
@@ -169,7 +72,7 @@ void Server::initServerFd()
         throw std::logic_error("Fail bind. Cannot launch server. ");
     }
     freeaddrinfo(result);
-    if (listen (_serverFd, 10) < 0 )
+    if (listen(_serverFd, 10) < 0 )
     {
         close(_serverFd);
         _serverFd = -1;
@@ -189,8 +92,6 @@ void Server::run()
 
     while (g_run == 1)
     {   
-        // std::cout << CYAN "Server on ? " << g_run << RESET << std::endl;
-        // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
         int pollReturn = poll(&_pollFds[0], _pollFds.size(), 2000);
         if (pollReturn < 0)
         {
@@ -283,4 +184,98 @@ void Server::run()
     _pollFds.clear();
 
     std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
+}
+
+
+//Lit les octets envoyes par recv(), les ajoute au buffer puis declenche traitement du parsing
+void Server::onClientRead(int clientFd)
+{
+    char buffer[4096];
+
+    int bytesRead = recv(clientFd, buffer, sizeof(buffer), 0);
+    if (bytesRead == 0)//le client est deconnecte
+    {
+        disconnectClient(clientFd);
+        return;
+    }
+    if (bytesRead < 0)//erreur pendant la lecture de recv
+    {
+        std::cout << "ERROR: recv failed" << std::endl;
+        return;
+    }
+    std::map<int, User*>::iterator it = _usersByFd.find(clientFd);
+    if (it == _usersByFd.end() || it->second == NULL)//clientFd pas reconnu ou pas associe a un User valide
+    {
+        std::cout << "ERROR: unknown clientFd in onClientRead" << std::endl;
+        return;
+    }
+    User* user = it->second;
+    user->inbuf().append(buffer, bytesRead);
+    processInputBuffer(*user);
+    if (_usersByFd.count(clientFd) && user->shouldDisconnect())
+        disconnectClient(clientFd);
+}
+ 
+void    Server::disconnectClient(int clientFd)
+{
+    std::map<int, User*>::iterator userIt = _usersByFd.find(clientFd);
+    if (userIt == _usersByFd.end())//verifie si le clientFd correspond bien a un user existant
+        return;
+    User* user = userIt->second;
+    if (!user->getNick().empty())//verifie si le user a un nick avant de le supprimer. Empty test dans le cas d'une deconnection avant d'avoir choiss son nick
+        _usersByNick.erase(user->getNick());
+    for (std::map<std::string, Channel*>::iterator chanIt = _channels.begin(); chanIt != _channels.end(); )//on parcourt tous nos channels
+    {
+        Channel* channel = chanIt->second;//je recupere mon channel courant
+        if (channel->hasUser(user))//retirer le user du channel
+            channel->removeUser(user);
+        if (channel->getUsers().empty())//retirer les objets channels vides
+        {
+            delete channel;
+            std::map<std::string, Channel*>::iterator toErase = chanIt++;
+            _channels.erase(toErase);
+        }
+        else//si pas vide je passe a la suite
+        {
+            ++chanIt;
+        }
+    }
+    for (std::vector<pollfd>::iterator it = _pollFds.begin(); it != _pollFds.end(); ++it)//nettoyer notre vector pollfds
+    {
+        if (it->fd == clientFd)
+        {
+            _pollFds.erase(it);
+            break;
+        }
+
+    }
+    close(clientFd);
+    _usersByFd.erase(userIt);
+    delete user;
+    std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
+}
+
+
+//Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
+void Server::processInputBuffer(User& user)
+{
+    std::string& buf = user.inbuf();
+    std::string line;
+
+    while (true)
+    {
+        size_t pos = buf.find("\r\n");
+        if (pos == std::string::npos)
+            break;
+
+        line = buf.substr(0, pos);
+        buf.erase(0, pos + 2);
+        Message msg;
+        if (!msg.parse(line))
+            continue;
+
+        dispatchCommand(user, msg);
+        if (user.shouldDisconnect())
+            return;
+    }
 }
