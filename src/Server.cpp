@@ -82,65 +82,62 @@ void Server::initServerFd()
 
 void Server::run()
 {
-    std::cout << "Starting new server. \nPort: " << this->_port 
-    << "\nPassword: " << this->_password << std::endl;
-    g_run = 1; 
+    std::cout << "Starting new server.\nPort: " << this->_port
+              << "\nPassword: " << this->_password << std::endl;
+
+    g_run = 1;
     initServerFd();
+
     std::cout << GREEN "SERVER LISTENING :" RESET << std::endl;
+
     pollfd pfd_server = {this->_serverFd, POLLIN, 0};
     _pollFds.push_back(pfd_server);
 
     while (g_run == 1)
-    {   
+    {
         int pollReturn = poll(&_pollFds[0], _pollFds.size(), 2000);
         if (pollReturn < 0)
         {
             std::cerr << "poll() failed" << std::endl;
-            continue;
+            break;
         }
         if (pollReturn == 0)
             continue;
+
         for (size_t i = 0; i < _pollFds.size(); ++i)
         {
-            int fd = _pollFds[i].fd;//on avait une reference, je retire car _pollFds peut etre modifie quand on disconnect un client --> dangereux
+            int fd = _pollFds[i].fd;
             short revents = _pollFds[i].revents;
-    
+
             if (revents == 0)
-                continue; //TODO: pertinence de check meme si revents 0 ? => oui par securite
-            if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                //TODO: gestion des erreurs et clean de fd
-                // std::cerr << "message d'erreur" << std::endl;
-                // couper la connexion+ remove fd + client
-                /*
-                POLLHUP client a ferme la co --> disconnectClient
-                POLLER erreur sur la socket style probleme reseau == > fermer nettoyer 
-                POLLNVAL fd invalide deja ferme, corrompu etc --> retirer nettoyer 
-                */
+                continue;
+
+            if (revents & (POLLERR | POLLHUP | POLLNVAL))
+            {
                 if (fd == _serverFd)
                 {
                     std::cerr << "server socket error" << std::endl;
+                    g_run = 0;
                     break;
                 }
                 disconnectClient(fd);
                 --i;
                 continue;
             }
-            //  NOUVELLE CONNEXION 
+
             if (fd == _serverFd && (revents & POLLIN))
-            { //formulation bizarre mais en gros POLLIN and co sont des masques
-
-                struct sockaddr_in client_addr; //TODO importance/utilite d'usage de la structure sockaddress
-
+            {
+                struct sockaddr_in client_addr;
                 socklen_t addr_size = sizeof(client_addr);
-        
-                int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);//J'accepte une nouvelle connexion entrante
+
+                int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);
                 if (client_fd < 0)
                 {
                     std::cerr << "accept() failed" << std::endl;
                     continue;
                 }
-                    
-                if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)//on tente de mettre la socket du client en mode non bloquant 
+
+                if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
                 {
                     close(client_fd);
                     std::cerr << "cannot setup socket as nonblock" << std::endl;
@@ -152,39 +149,50 @@ void Server::run()
                 newFdToPoll.events = POLLIN;
                 newFdToPoll.revents = 0;
 
-                _usersByFd[client_fd] = new User(client_fd); //recup des infos du client from sockaddress
-                
-
+                _usersByFd[client_fd] = new User(client_fd);
                 _pollFds.push_back(newFdToPoll);
+
                 std::cout << "New client connected: fd " << client_fd << std::endl;
             }
-            //  MESSAGE CLIENT
-            else if (revents & POLLIN)
+            else
             {
-                size_t oldSize = _pollFds.size();
-                onClientRead(fd);
-                if (_pollFds.size() < oldSize)
-                    --i;
+                if (revents & POLLIN)
+                {
+                    size_t oldSize = _pollFds.size();
+                    onClientRead(fd);
+                    if (_pollFds.size() < oldSize)
+                    {
+                        --i;//on evite de sauter l'element dans le vector
+                        continue;//on repart au tour suivant du for
+                    }
+                }
+
+                if (_usersByFd.count(fd) && (revents & POLLOUT))//poll indique via revents que je peux ecrire su rla socket (POLLOUT)
+                    flushClientOutput(fd);
             }
         }
     }
+
     std::cout << YELLOW "stopping server" RESET << std::endl;
+
     for (size_t i = 0; i < _pollFds.size();)
     {
         int fd = _pollFds[i].fd;
+
         if (fd == _serverFd)
         {
             ++i;
             continue;
         }
+
         disconnectClient(fd);
     }
+
     close(_serverFd);
     _pollFds.clear();
 
     std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
 }
-
 
 //Lit les octets envoyes par recv(), les ajoute au buffer puis declenche traitement du parsing
 void Server::onClientRead(int clientFd)

@@ -75,13 +75,58 @@ void Server::sendToClient(User& user, const std::string& message)
     {
         if (_pollFds[i].fd == user.getFd())
         {
-            _pollFds[i].events != POLLOUT;
+            _pollFds[i].events |= POLLOUT;//notifie moi quand je peux ecrire
+            //je garde le POLLIN --> continuer a ecouter ET j'ajoute POLLOUT temporairement--> prepare a l'ecriture
             break;
         }
     }
 }
 
+//Envoyer au client ce qui est stocker dans son buffer de sortie
+void Server::flushClientOutput(int clientFd)
+{
+    std::map<int, User*>::iterator it = _usersByFd.find(clientFd);
+    if (it == _usersByFd.end() || it->second == NULL)//cas client n'existe pas
+        return;
+    User* user = it->second;//recup son pointeur vers l'obj User
+    if (user->outbuf().empty())//si buffer vide
+    {
+        for (size_t i = 0; i < _pollFds.size(); ++i)
+        {
+            if (_pollFds[i].fd == clientFd)
+            {
+                _pollFds[i].events &= ~POLLOUT;//retirer POLLOUT car on a plus besoin d'etre prevenues pour ecrire
+                break;
+            }
+        }
+        return;
+    }
+    ssize_t sent = send(clientFd, user->outbuf().c_str(), user->outbuf().size(), 0);//pas vide, on tente d'envoyer au client le contenu du buffer de sortie
+    if (sent <= 0)
+    {
+        std::cerr << "ERROR: send failed" << std::endl;
+        disconnectClient(clientFd);
+        return;
+    }
+    user->outbuf().erase(0, sent);//je clean mon buffer
+    if (user->outbuf().empty())//verif bien clean
+    {
+        for (size_t i = 0; i < _pollFds.size(); ++i)
+        {
+            if (_pollFds[i].fd == clientFd)
+            {
+                _pollFds[i].events &= ~POLLOUT;
+                break;
+            }
+        }
+    }
+}
 
+/*
+&= garde uniquement les bit communs --> je ne garde que POLLIN
+enlever le flag POLLOUT de la socket, je ne veux plus etr enotifie quand la socket est prete a ecrire
+permet de desactvier POLLOUT quand le buffer est vide pour eviter les spams de poll
+*/
 bool Server::requireRegistered(User & user)
 {
     if (!user.isRegistered())

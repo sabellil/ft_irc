@@ -54,8 +54,7 @@ private:
     void                              handleUnknown(User&, const Message&);
     bool                              requireRegistered(User& user);
     void                              initServerFd();
-    
-    
+    void                              flushClientOutput(int clientFd);
 
 };
 
