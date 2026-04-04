@@ -174,7 +174,6 @@ void Server::run()
             ++i;
             continue;
         }
-        send(fd, "Serveur Closed. Bye bye !\n", 26, 0);
         disconnectClient(fd);
     }
     close(_serverFd);
