@@ -272,6 +272,7 @@ void    Server::disconnectClient(int clientFd)
 }
 
 
+
 //Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
 void Server::processInputBuffer(User& user)
 {
