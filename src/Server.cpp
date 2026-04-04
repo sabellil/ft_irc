@@ -51,7 +51,7 @@ void Server::initServerFd()
         throw std::logic_error("Fail socket. Cannot launch server. ");
     }
 
-    if (fcntl(_serverFd, F_SETFL, O_NONBLOCK))
+    if (fcntl(_serverFd, F_SETFL, O_NONBLOCK) < 0)
     {
         freeaddrinfo(result);
         close(_serverFd);
@@ -95,10 +95,8 @@ void Server::run()
         int pollReturn = poll(&_pollFds[0], _pollFds.size(), 2000);
         if (pollReturn < 0)
         {
-            if (errno == EINTR)//cas ctrl c pour dire que c'est un arret normal e tpas un crash
-                break;
-            throw std::logic_error("poll() failed");
-
+            std::cerr << "poll() failed" << std::endl;
+            continue;
         }
         if (pollReturn == 0)
             continue;
@@ -133,11 +131,10 @@ void Server::run()
                 socklen_t addr_size = sizeof(client_addr);
         
                 int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);//J'accepte une nouvelle connexion entrante
-                if (client_fd < 0)//si accept echoue
+                if (client_fd < 0)
                 {
-                    if (errno == EAGAIN || errno == EWOULDBLOCK)//si l'echec vient de ya en fait aucune connexion prete mtn = ressaye + tard
-                        continue;
-                    throw std::logic_error("fail connexion client => accept() error "); //sinon si vraie erreur on stop le sevreur
+                    std::cerr << "accept() failed" << std::endl;
+                    continue;
                 }
                     
                 if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)//on tente de mettre la socket du client en mode non bloquant 

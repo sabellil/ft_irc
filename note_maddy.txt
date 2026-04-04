@@ -201,7 +201,7 @@ OBJECTIFS :
 -handle les poll error
 -ameliorer gestion des signaux/leaks
 
------------poll() - revents (returned event) mask
+-----------poll - revents (returned event) mask
 ----- POLLERR (= error)
 Error condition (output only).
 An error has occurred on the device or stream. 
