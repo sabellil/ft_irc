@@ -117,7 +117,10 @@ void Server::run()
                 POLLNVAL fd invalide deja ferme, corrompu etc --> retirer nettoyer 
                 */
                 if (fd == _serverFd)
-                    throw std::logic_error("server socket poll error");
+                {
+                    std::cerr << "server socket error" << std::endl;
+                    break;
+                }
                 disconnectClient(fd);
                 --i;
                 continue;
@@ -140,8 +143,8 @@ void Server::run()
                 if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)//on tente de mettre la socket du client en mode non bloquant 
                 {
                     close(client_fd);
-                    _serverFd = -1;
-                    throw std::logic_error("cannot setup socket as nonblock "); 
+                    std::cerr << "cannot setup socket as nonblock" << std::endl;
+                    continue;
                 }
 
                 struct pollfd newFdToPoll;
@@ -165,7 +168,7 @@ void Server::run()
             }
         }
     }
-    std::cout << YELLOW "server timeout" RESET << std::endl;
+    std::cout << YELLOW "stopping server" RESET << std::endl;
     for (size_t i = 0; i < _pollFds.size();)
     {
         int fd = _pollFds[i].fd;
