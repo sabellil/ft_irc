@@ -51,5 +51,7 @@ public:
     bool                shouldDisconnect() const;
     void                setShouldDisconnect(bool value);
 
+    void                flushClientOutput(int _clientFd);
+
 };
 #endif

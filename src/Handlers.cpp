@@ -58,15 +58,17 @@ std::string Server::getClientName(const User& user) const
     return user.getNick();
 }
 
-void Server::sendToClient(User& user, const std::string& message)
-{
-    std::string fullMessage = message + "\r\n";
-    ssize_t bytes = send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
-    if (bytes < 0)
-    {
-        std::cerr << "Error sending message to client" << std::endl;
-    }
-}
+// void Server::sendToClient(User& user, const std::string& message)
+// {
+//     std::string fullMessage = message + "\r\n";
+//     ssize_t bytes = send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
+//     if (bytes < 0)
+//     {
+//         std::cerr << "Error sending message to client" << std::endl;
+//     }
+// }
+
+
 
 bool Server::requireRegistered(User & user)
 {
