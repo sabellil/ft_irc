@@ -233,8 +233,17 @@ void    Server::disconnectClient(int clientFd)
     for (std::map<std::string, Channel*>::iterator chanIt = _channels.begin(); chanIt != _channels.end(); )//on parcourt tous nos channels
     {
         Channel* channel = chanIt->second;//je recupere mon channel courant
-        if (channel->hasUser(user))//retirer le user du channel
+        if (channel->hasUser(user))
+        {
+            std::string quitMsg = ":" + user->getNick() + "!" + user->getUsername() + "@localhost QUIT :Client Quit";
+            const std::set<User*>& users = channel->getUsers();
+            for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+            {
+                if (*it != user)
+                    sendToClient(**it, quitMsg);
+            }
             channel->removeUser(user);
+        }
         if (channel->getUsers().empty())//retirer les objets channels vides
         {
             delete channel;
