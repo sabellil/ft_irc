@@ -2,6 +2,10 @@
 #define USER_HPP
 
 #include <string>
+#include <string>
+#include <set>
+
+class Channel;
 
 class User
 {
@@ -17,11 +21,10 @@ private:
     bool                _registered;
     bool                _shouldDisconnect;
 
-    std::string         _inbuf;//s'assurer d'aller jusqu'au \r\n et d'avoir toute la ligne
+    std::string         _inbuf;//s'assurer d'aller jusqu'au \n et d'avoir toute la ligne
     std::string         _outbuf;
 
-
-
+    std::set<Channel*>  _channels;
 
 public:
     User(int fd);
@@ -50,6 +53,10 @@ public:
     void                setRegistered(bool value);
     bool                shouldDisconnect() const;
     void                setShouldDisconnect(bool value);
+
+    const std::set<Channel*>& getChannels() const;
+    void                addChannel(Channel* channel);
+    void                removeChannel(Channel* channel);
 
 };
 #endif

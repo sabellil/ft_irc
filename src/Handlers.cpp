@@ -191,6 +191,16 @@ void Server::handleNICK(User& user, const Message& msg)
     {
         std::string nickMsg = ":" + oldNick + "!" + user.getUsername() + "@localhost NICK :" + newNick;
         sendToClient(user, nickMsg);
+        const std::set<Channel*>& channels = user.getChannels();
+        for (std::set<Channel*>::const_iterator ch = channels.begin(); ch != channels.end(); ++ch)
+        {
+            const std::set<User*>& users = (*ch)->getUsers();
+            for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+            {
+                if (*it != &user)
+                    sendToClient(**it, nickMsg);
+            }
+        }
     }
     std::cout << "New nick set to: " << user.getNick() << std::endl;
     tryRegister(user);
@@ -252,6 +262,7 @@ void Server::handleJOIN(User& user, const Message& msg)
         return;
     }
     const std::string& channelName = msg._params[0];
+    std::cout << "JOIN param=[" << channelName << "]" << std::endl;
     if (channelName.empty() || channelName[0] != '#')
     {
         sendToClient(user, ":ircserv 476 " + user.getNick() + " " + channelName + " :Bad Channel Mask");
@@ -296,6 +307,7 @@ void Server::handleJOIN(User& user, const Message& msg)
  
 
     channel->addUser(&user);
+    user.addChannel(channel);
     channel->removeInvite(&user);
 
     if (isNewChannel)
@@ -736,8 +748,6 @@ TO DO:
 
 void Server::handlePART(User& user, const Message& msg)
 {
-    std::cout << "DEBUG: handlePART called" << std::endl;
-
     if (!requireRegistered(user))
         return;
 
@@ -769,6 +779,7 @@ void Server::handlePART(User& user, const Message& msg)
     for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
         sendToClient(**it, partMsg);
     channel->removeUser(&user);
+    user.removeChannel(channel);
     if(channel->getUsers().empty())
     {
         delete channel;

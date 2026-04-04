@@ -243,6 +243,7 @@ void    Server::disconnectClient(int clientFd)
                     sendToClient(**it, quitMsg);
             }
             channel->removeUser(user);
+            user->removeChannel(channel);
         }
         if (channel->getUsers().empty())//retirer les objets channels vides
         {
