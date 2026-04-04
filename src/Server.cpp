@@ -15,7 +15,6 @@
 #include <netdb.h>
 #include <fcntl.h> //manip des fd (get ou set options)
 #include <arpa/inet.h> //ai_family
-#include <cerrno>
 
 Server::Server(char * raw_port, const std::string& password)
 : _raw_port(raw_port),
@@ -26,6 +25,173 @@ Server::Server(char * raw_port, const std::string& password)
 }
 
 Server::~Server() {}
+
+
+void Server::initServerFd()
+{
+
+    struct addrinfo hints; 
+    struct addrinfo * result; 
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 0;
+    hints.ai_flags = AI_PASSIVE; // adresse passive = adresse en ecoute donc adresse serveur
+
+    if (getaddrinfo(NULL, _raw_port, &hints, &result) != 0 ) {
+        throw std::logic_error("No port available. Cannot launch server. ");
+    }
+
+    _serverFd = socket(result->ai_family, result->ai_socktype, result->ai_protocol); 
+    if (_serverFd < 0 ) {
+        freeaddrinfo(result);
+        throw std::logic_error("Fail socket. Cannot launch server. ");
+    }
+
+    if (fcntl(_serverFd, F_SETFL, O_NONBLOCK) < 0)
+    {
+        freeaddrinfo(result);
+        close(_serverFd);
+        throw std::logic_error("Fail fcntl. Cannot launch server. ");
+    }
+
+    
+    int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
+    if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
+    {
+        freeaddrinfo(result);
+        close(_serverFd);
+        throw std::logic_error("Fail setsockopt. Cannot launch server.");
+    }
+    if (bind(_serverFd, result->ai_addr, result->ai_addrlen) < 0 ) {
+        freeaddrinfo(result);
+        close(_serverFd);
+        throw std::logic_error("Fail bind. Cannot launch server. ");
+    }
+    freeaddrinfo(result);
+    if (listen(_serverFd, 10) < 0 )
+    {
+        close(_serverFd);
+        _serverFd = -1;
+        throw std::logic_error("Fail listen. Cannot launch server. ");
+    }
+}
+
+void Server::run()
+{
+    std::cout << "Starting new server.\nPort: " << this->_port
+              << "\nPassword: " << this->_password << std::endl;
+
+    g_run = 1;
+    initServerFd();
+
+    std::cout << GREEN "SERVER LISTENING :" RESET << std::endl;
+
+    pollfd pfd_server = {this->_serverFd, POLLIN, 0};
+    _pollFds.push_back(pfd_server);
+
+    while (g_run == 1)
+    {
+        int pollReturn = poll(&_pollFds[0], _pollFds.size(), 2000);
+        if (pollReturn < 0)
+        {
+            std::cerr << "poll() failed" << std::endl;
+            break;
+        }
+        if (pollReturn == 0)
+            continue;
+
+        for (size_t i = 0; i < _pollFds.size(); ++i)
+        {
+            int fd = _pollFds[i].fd;
+            short revents = _pollFds[i].revents;
+
+            if (revents == 0)
+                continue;
+
+            if (revents & (POLLERR | POLLHUP | POLLNVAL))
+            {
+                if (fd == _serverFd)
+                {
+                    std::cerr << "server socket error" << std::endl;
+                    g_run = 0;
+                    break;
+                }
+                disconnectClient(fd);
+                --i;
+                continue;
+            }
+
+            if (fd == _serverFd && (revents & POLLIN))
+            {
+                struct sockaddr_in client_addr;
+                socklen_t addr_size = sizeof(client_addr);
+
+                int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);
+                if (client_fd < 0)
+                {
+                    std::cerr << "accept() failed" << std::endl;
+                    continue;
+                }
+
+                if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
+                {
+                    close(client_fd);
+                    std::cerr << "cannot setup socket as nonblock" << std::endl;
+                    continue;
+                }
+
+                struct pollfd newFdToPoll;
+                newFdToPoll.fd = client_fd;
+                newFdToPoll.events = POLLIN;
+                newFdToPoll.revents = 0;
+
+                _usersByFd[client_fd] = new User(client_fd);
+                _pollFds.push_back(newFdToPoll);
+
+                std::cout << "New client connected: fd " << client_fd << std::endl;
+            }
+            else
+            {
+                if (revents & POLLIN)
+                {
+                    size_t oldSize = _pollFds.size();
+                    onClientRead(fd);
+                    if (_pollFds.size() < oldSize)
+                    {
+                        --i;//on evite de sauter l'element dans le vector
+                        continue;//on repart au tour suivant du for
+                    }
+                }
+
+                if (_usersByFd.count(fd) && (revents & POLLOUT))//poll indique via revents que je peux ecrire su rla socket (POLLOUT)
+                    flushClientOutput(fd);
+            }
+        }
+    }
+
+    std::cout << YELLOW "stopping server" RESET << std::endl;
+
+    for (size_t i = 0; i < _pollFds.size();)
+    {
+        int fd = _pollFds[i].fd;
+
+        if (fd == _serverFd)
+        {
+            ++i;
+            continue;
+        }
+
+        disconnectClient(fd);
+    }
+
+    close(_serverFd);
+    _pollFds.clear();
+
+    std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
+}
 
 //Lit les octets envoyes par recv(), les ajoute au buffer puis declenche traitement du parsing
 void Server::onClientRead(int clientFd)
@@ -52,6 +218,8 @@ void Server::onClientRead(int clientFd)
     User* user = it->second;
     user->inbuf().append(buffer, bytesRead);
     processInputBuffer(*user);
+    if (_usersByFd.count(clientFd) && user->shouldDisconnect())
+        disconnectClient(clientFd);
 }
  
 void    Server::disconnectClient(int clientFd)
@@ -65,8 +233,18 @@ void    Server::disconnectClient(int clientFd)
     for (std::map<std::string, Channel*>::iterator chanIt = _channels.begin(); chanIt != _channels.end(); )//on parcourt tous nos channels
     {
         Channel* channel = chanIt->second;//je recupere mon channel courant
-        if (channel->hasUser(user))//retirer le user du channel
+        if (channel->hasUser(user))
+        {
+            std::string quitMsg = ":" + user->getNick() + "!" + user->getUsername() + "@localhost QUIT :Client Quit";
+            const std::set<User*>& users = channel->getUsers();
+            for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+            {
+                if (*it != user)
+                    sendToClient(**it, quitMsg);
+            }
             channel->removeUser(user);
+            user->removeChannel(channel);
+        }
         if (channel->getUsers().empty())//retirer les objets channels vides
         {
             delete channel;
@@ -93,16 +271,6 @@ void    Server::disconnectClient(int clientFd)
     std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
 }
 
-/*
-SARA --> a partager plus tard
-On nettoie pas _usersByNick, les channels ou le users est present, le soeprateurs si le user etait op, les inve
-
-Pointeurs morts dans _usersNick _channels _users _operators _invitedUsers
-Logique : retrouver user* > enlever de _usersByNick > enlever tous les channels > enlever des operators si jamais ya besoin
-> enlever des invites si besoin > supprimer les eventuels channels vides
-
-
-*/
 
 //Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
 void Server::processInputBuffer(User& user)
@@ -112,177 +280,22 @@ void Server::processInputBuffer(User& user)
 
     while (true)
     {
-        size_t pos = buf.find("\r\n");
+        size_t pos = buf.find("\n");
         if (pos == std::string::npos)
             break;
 
         line = buf.substr(0, pos);
-        buf.erase(0, pos + 2);
+        buf.erase(0, pos + 1);
+
+        if (!line.empty() && line[line.size() -1] == '\r')
+            line.erase(line.size() - 1);
+        
         Message msg;
         if (!msg.parse(line))
             continue;
 
         dispatchCommand(user, msg);
+        if (user.shouldDisconnect())
+            return;
     }
 }
-
-
-void Server::initServerFd()
-{
-
-    struct addrinfo hints; 
-    struct addrinfo * result; 
-
-    memset(&hints, 0, sizeof(struct addrinfo));
-    
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = 0;
-    hints.ai_flags = AI_PASSIVE; // adresse passive = adresse en ecoute donc adresse serveur
-
-    if (getaddrinfo(NULL, _raw_port, &hints, &result) != 0 ) {
-        throw std::logic_error("No port available. Cannot launch server. ");
-    }
-
-    _serverFd = socket(result->ai_family, result->ai_socktype, result->ai_protocol); 
-    if (_serverFd < 0 ) {
-        freeaddrinfo(result);
-        throw std::logic_error("Fail socket. Cannot launch server. ");
-    }
-
-    /*Ajout d'un bloc verif fcntl ici comme dnas run ? TODO MADDY */
-                //     if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)//on tente de mettre la socket du client en mode non bloquant 
-                // {
-                        // freeaddrinfo(result);
-                //     close(client_fd);
-                //     _serverFd = -1;
-                //     throw std::logic_error("cannot setup socket as nonblock "); 
-                // }
-    
-    int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
-    if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
-    {
-        freeaddrinfo(result);
-        close(_serverFd);
-        throw std::logic_error("Fail setsockopt. Cannot launch server.");
-    }
-    if (bind(_serverFd, result->ai_addr, result->ai_addrlen) < 0 ) {
-        freeaddrinfo(result);
-        close(_serverFd);
-        throw std::logic_error("Fail bind. Cannot launch server. ");
-    }
-    freeaddrinfo(result);
-    if (listen (_serverFd, 10) < 0 )
-    {
-        close(_serverFd);
-        _serverFd = -1;
-        throw std::logic_error("Fail listen. Cannot launch server. ");
-    }
-}
-
-
-void Server::run()
-{
-    std::cout << "Starting new server. \nPort: " << this->_port 
-    << "\nPassword: " << this->_password << std::endl;
-    g_run = 1; 
-    initServerFd();
-    std::cout << GREEN "SERVER LISTENING :" RESET << std::endl;
-    pollfd pfd_server = {this->_serverFd, POLLIN, 0};
-    _pollFds.push_back(pfd_server);
-
-    while (g_run == 1)
-    {   
-        // std::cout << CYAN "Server on ? " << g_run << RESET << std::endl;
-        // About Timeout : now a -1 pour rien bloquer, mais l'option d'en set un est importante, espace delais entrenouveaux appel de time out donc "eco ressources " ce sont les events de tentative de recennexion successive sur un server
-        int pollReturn = poll(&_pollFds[0], _pollFds.size(), 2000);
-        if (pollReturn < 0)
-        {
-            if (errno == EINTR)//cas ctrl c pour dire que c'est un arret normal e tpas un crash
-                break;
-            throw std::logic_error("poll() failed");
-
-        }
-        if (pollReturn == 0)
-            continue;
-        for (size_t i = 0; i < _pollFds.size(); ++i)
-        {
-            int fd = _pollFds[i].fd;//on avait une reference, je retire car _pollFds peut etre modifie quand on disconnect un client --> dangereux
-            short revents = _pollFds[i].revents;
-    
-            if (revents == 0)
-                continue;
-            if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                /*
-                POLLHUP client a ferme la co --> disconnectClient
-                POLLER erreur sur la socket style probleme reseau == > fermer nettoyer 
-                POLLNVAL fd invalide deja ferme, corrompu etc --> retirer nettoyer 
-                */
-                if (fd == _serverFd)
-                    throw std::logic_error("server socket poll error");
-                disconnectClient(fd);
-                --i;
-                continue;
-            }
-            //  NOUVELLE CONNEXION 
-            if (fd == _serverFd && (revents & POLLIN))
-            { //formulation bizarre mais en gros POLLIN and co sont des masques
-
-                struct sockaddr_in client_addr; //TODO importance/utilite d'usage de la structure sockaddress
-
-                socklen_t addr_size = sizeof(client_addr);
-        
-                int client_fd = accept(_serverFd, (struct sockaddr *)&client_addr, &addr_size);//J'accepte une nouvelle connexion entrante
-                if (client_fd < 0)//si accept echoue
-                {
-                    if (errno == EAGAIN || errno == EWOULDBLOCK)//si l'echec vient de ya en fait aucune connexion prete mtn = ressaye + tard
-                        continue;
-                    throw std::logic_error("fail connexion client => accept() error "); //sinon si vraie erreur on stop le sevreur
-                }
-                    
-                if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)//on tente de mettre la socket du client en mode non bloquant 
-                {
-                    close(client_fd);
-                    throw std::logic_error("cannot setup socket as nonblock "); 
-                }
-
-                struct pollfd newFdToPoll;
-                newFdToPoll.fd = client_fd;
-                newFdToPoll.events = POLLIN;
-                newFdToPoll.revents = 0;
-
-                _usersByFd[client_fd] = new User(client_fd); //recup des infos du client from sockaddress
-                
-
-                _pollFds.push_back(newFdToPoll);
-                std::cout << "New client connected: fd " << client_fd << std::endl;
-            }
-            //  MESSAGE CLIENT
-            else if (revents & POLLIN)
-            {
-                size_t oldSize = _pollFds.size();
-                onClientRead(fd);
-                if (_pollFds.size() < oldSize)
-                    --i;
-            }
-        }
-    }
-    std::cout << YELLOW "server timeout" RESET << std::endl;
-    for (size_t i = 0; i < _pollFds.size();)
-    {
-        int fd = _pollFds[i].fd;
-        if (fd == _serverFd)
-        {
-            ++i;
-            continue;
-        }
-        disconnectClient(fd);
-    }
-    close(_serverFd);
-    _pollFds.clear();
-
-    std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
-}
-
-
-

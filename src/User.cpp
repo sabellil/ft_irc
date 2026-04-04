@@ -2,8 +2,10 @@
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
 #include "../include/Message.hpp"
+#include "../include/Channel.hpp"
 
-User::User(int fd) : _fd(fd), _nick(""), _username(""), _hasPass(false), _hasNick(false), _hasUser(false), _registered(false), _inbuf(""), _outbuf("") {
+
+User::User(int fd) : _fd(fd), _nick(""), _username(""), _realname(""), _hasPass(false), _hasNick(false), _hasUser(false), _registered(false), _shouldDisconnect(false), _inbuf(""), _outbuf("") {
     std::cout << "--> User created for fd : " << _fd << std::endl;
 }
 
@@ -86,3 +88,27 @@ void User::setHasPass(bool value)
     _hasPass = value;
 }
 
+bool User::shouldDisconnect() const
+{
+    return _shouldDisconnect;
+}
+
+void User::setShouldDisconnect(bool value)
+{
+    _shouldDisconnect = value;
+}
+
+const std::set<Channel*>& User::getChannels() const
+{
+    return _channels;
+}
+
+void User::addChannel(Channel* channel)
+{
+    _channels.insert(channel);
+}
+
+void User::removeChannel(Channel* channel)
+{
+    _channels.erase(channel);
+}

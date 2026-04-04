@@ -33,6 +33,10 @@ void Server::dispatchCommand(User& user, const Message& msg)
         handleMODE(user, msg);
     else if (cmd == "PING")
         handlePING(user, msg);
+    else if (cmd == "PART")
+        handlePART(user, msg);
+    else if (cmd == "CAP")
+        return;
     else
         handleUnknown(user, msg);
 }
@@ -58,14 +62,62 @@ std::string Server::getClientName(const User& user) const
 
 void Server::sendToClient(User& user, const std::string& message)
 {
-    std::string fullMessage = message + "\r\n";
-    ssize_t bytes = send(user.getFd(), fullMessage.c_str(), fullMessage.size(), 0);
-    if (bytes < 0)
+    user.outbuf() += message + "\r\n";
+    for (size_t i = 0; i < _pollFds.size(); ++i)
     {
-        std::cerr << "Error sending message to client" << std::endl;
+        if (_pollFds[i].fd == user.getFd())
+        {
+            _pollFds[i].events |= POLLOUT;//notifie moi quand je peux ecrire
+            //je garde le POLLIN --> continuer a ecouter ET j'ajoute POLLOUT temporairement--> prepare a l'ecriture
+            break;
+        }
+    }
+}
+//Envoyer au client ce qui est stocker dans son buffer de sortie
+void Server::flushClientOutput(int clientFd)
+{
+    std::map<int, User*>::iterator it = _usersByFd.find(clientFd);
+    if (it == _usersByFd.end() || it->second == NULL)//cas client n'existe pas
+        return;
+    User* user = it->second;//recup son pointeur vers l'obj User
+    if (user->outbuf().empty())//si buffer vide
+    {
+        for (size_t i = 0; i < _pollFds.size(); ++i)
+        {
+            if (_pollFds[i].fd == clientFd)
+            {
+                _pollFds[i].events &= ~POLLOUT;//retirer POLLOUT car on a plus besoin d'etre prevenues pour ecrire
+                break;
+            }
+        }
+        return;
+    }
+    ssize_t sent = send(clientFd, user->outbuf().c_str(), user->outbuf().size(), 0);//pas vide, on tente d'envoyer au client le contenu du buffer de sortie
+    if (sent <= 0)
+    {
+        std::cerr << "ERROR: send failed" << std::endl;
+        disconnectClient(clientFd);
+        return;
+    }
+    user->outbuf().erase(0, sent);//je clean mon buffer
+    if (user->outbuf().empty())//verif bien clean
+    {
+        for (size_t i = 0; i < _pollFds.size(); ++i)
+        {
+            if (_pollFds[i].fd == clientFd)
+            {
+                _pollFds[i].events &= ~POLLOUT;
+                break;
+            }
+        }
     }
 }
 
+/*
+&= garde uniquement les bit communs --> je ne garde que POLLIN
+enlever le flag POLLOUT de la socket, je ne veux plus etr enotifie quand la socket est prete a ecrire
+permet de desactvier POLLOUT quand le buffer est vide pour eviter les spams de poll
+*/
 bool Server::requireRegistered(User & user)
 {
     if (!user.isRegistered())
@@ -100,6 +152,7 @@ void Server::handlePASS(User& user, const Message& msg)
     {
         std::cout << "ERROR: wrong password!!!!! Try again" << std::endl;
         sendToClient(user, ":ircserv 464 " + getClientName(user) + " PASS :Password incorrect");
+        user.setShouldDisconnect(true);
         return;
     }
     user.setHasPass(true);
@@ -138,6 +191,16 @@ void Server::handleNICK(User& user, const Message& msg)
     {
         std::string nickMsg = ":" + oldNick + "!" + user.getUsername() + "@localhost NICK :" + newNick;
         sendToClient(user, nickMsg);
+        const std::set<Channel*>& channels = user.getChannels();
+        for (std::set<Channel*>::const_iterator ch = channels.begin(); ch != channels.end(); ++ch)
+        {
+            const std::set<User*>& users = (*ch)->getUsers();
+            for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+            {
+                if (*it != &user)
+                    sendToClient(**it, nickMsg);
+            }
+        }
     }
     std::cout << "New nick set to: " << user.getNick() << std::endl;
     tryRegister(user);
@@ -199,6 +262,7 @@ void Server::handleJOIN(User& user, const Message& msg)
         return;
     }
     const std::string& channelName = msg._params[0];
+    std::cout << "JOIN param=[" << channelName << "]" << std::endl;
     if (channelName.empty() || channelName[0] != '#')
     {
         sendToClient(user, ":ircserv 476 " + user.getNick() + " " + channelName + " :Bad Channel Mask");
@@ -243,6 +307,7 @@ void Server::handleJOIN(User& user, const Message& msg)
  
 
     channel->addUser(&user);
+    user.addChannel(channel);
     channel->removeInvite(&user);
 
     if (isNewChannel)
@@ -285,9 +350,8 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
     const std::string& text = msg._trailing;
 
     std::string fullMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost PRIVMSG " + target + " :" + text;
-    std::cout << "Known nicks:" << std::endl;
-    for (std::map<std::string, User*>::iterator it = _usersByNick.begin(); it != _usersByNick.end(); ++it)
-        std::cout << "[" << it->first << "]" << std::endl;
+    // for (std::map<std::string, User*>::iterator it = _usersByNick.begin(); it != _usersByNick.end(); ++it)
+    //     std::cout << "[" << it->first << "]" << std::endl;
     if (_usersByNick.count(target))
     {
         User* targetUser = _usersByNick[target];
@@ -614,15 +678,6 @@ void Server::handleMODE(User& user, const Message& msg)
             channel->removeUserLimit();
         }
     }
-    /*
-    - verif si param < 3
-    - verif si nick existe dans _usersByNick
-    - recuperer ma targetUser
-    - verif si targetUser est bien dans le channel
-    - si +o je addOperator(targetUser)
-    - si -o je remove
-    
-    */
     else if (mode == 'o')
     {
         if (msg._params.size() < 3)
@@ -667,7 +722,15 @@ void Server::handleMODE(User& user, const Message& msg)
         sendToClient(**it, modeMsg);
     }
 }
-
+    /*
+    - verif si param < 3
+    - verif si nick existe dans _usersByNick
+    - recuperer ma targetUser
+    - verif si targetUser est bien dans le channel
+    - si +o je addOperator(targetUser)
+    - si -o je remove
+    
+    */
 
 /*
 TO DO:
@@ -683,6 +746,46 @@ TO DO:
 
 */
 
+void Server::handlePART(User& user, const Message& msg)
+{
+    if (!requireRegistered(user))
+        return;
+
+    if (msg._params.empty())
+    {
+        sendToClient(user, ":ircserv 461 " + user.getNick() + " PART :Not enough parameters");
+        return;
+    }
+
+    const std::string& channelName = msg._params[0];
+
+    if (_channels.count(channelName) == 0)
+    {
+        sendToClient(user, ":ircserv 403 " + user.getNick() + " " + channelName + " :No such channel");
+        return;
+    }
+
+    Channel* channel = _channels[channelName];
+
+    if(!channel->hasUser(&user))
+    {
+        sendToClient(user, ":ircserv 442 " + user.getNick() + " " + channelName + " :You're not on that channel");
+        return;
+    }
+    std::string partMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost PART " + channelName;
+    if (!msg._trailing.empty())
+        partMsg += " :" + msg._trailing;
+    const std::set<User*>& users = channel->getUsers();
+    for (std::set<User*>::const_iterator it = users.begin(); it != users.end(); ++it)
+        sendToClient(**it, partMsg);
+    channel->removeUser(&user);
+    user.removeChannel(channel);
+    if(channel->getUsers().empty())
+    {
+        delete channel;
+        _channels.erase(channelName);
+    }
+}
 
 void Server::handleUnknown(User& user, const Message& msg)
 {
