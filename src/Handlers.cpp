@@ -68,6 +68,18 @@ std::string Server::getClientName(const User& user) const
 //     }
 // }
 
+void Server::sendToClient(User& user, const std::string& message)
+{
+    user.outbuf() += message + "\r\n";
+    for (size_t i = 0; i < _pollFds.size(); ++i)
+    {
+        if (_pollFds[i].fd == user.getFd())
+        {
+            _pollFds[i].events != POLLOUT;
+            break;
+        }
+    }
+}
 
 
 bool Server::requireRegistered(User & user)
