@@ -33,8 +33,8 @@ volatile sig_atomic_t g_run = 0;
 int main(int ac, char **av) {
     try {
         check_arg(ac, av);
-        signal(SIGINT, sigStopHandler); // ctrl + c
-        signal(SIGQUIT, sigStopHandler);// ctrl + backlash 
+        signal(SIGINT, sigStopHandler);
+        signal(SIGQUIT, sigStopHandler);
 
         Server server(av[1], av[2]);
         server.run();

@@ -10,7 +10,7 @@ void    check_arg(int ac, char **av) {
         if (ac != 3)
             throw std::logic_error("Wrong nbr of arguments. Use ./ircserv <port> <password>");
 
-        int port_wanted = std::atoi(av[1]); //std::atoi return 0 si conversion impossible
+        int port_wanted = std::atoi(av[1]);
         if (port_wanted <= 0 || port_wanted > 65535)
             throw std::logic_error("Invalid port: 1 =< port > 65535 ");
 
@@ -29,7 +29,6 @@ void    check_arg(int ac, char **av) {
 void    sigStopHandler(int signum) {
     
     std::cerr << YELLOW "\rInterruption du serveur par signal " RESET << signum << std::endl; 
-    // \r == le curseur revient au tout debut de la ligne (meme si des trucs sont deja ecrits, cheh le chapo C)
     g_run = 0;
     return;
 

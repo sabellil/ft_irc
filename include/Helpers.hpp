@@ -1,7 +1,7 @@
 #ifndef HELPERS_HPP
 #define HELPERS_HPP
 
-#include "colors.hpp"
+#include "Colors.hpp"
 #include <csignal>
 #include <cstdlib>
 #include <cctype>

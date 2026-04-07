@@ -23,10 +23,6 @@ public:
     bool                            parse(const std::string& line);
     void                            skipSpaces(const std::string& line, size_t& i);
     void                            clear();
-
-private:
-    /*getters de commandes, params et trailing en const pour proteger d'une modif*/
-
 };
 
 #endif

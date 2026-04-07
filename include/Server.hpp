@@ -22,10 +22,10 @@ public:
     void                              run();
     void                              onClientRead(int clientFd);
     void                              acceptClient();
-    void                              disconnectClient(int clientFd);//si rien a lire = deconnexion
+    void                              disconnectClient(int clientFd);
     void                              processInputBuffer(User& user);
-    void                              handleNICK(User&, const Message&);//TEMPORAIREMENT EN PUBLIC pour tester avec main dedie
-    void                              dispatchCommand(User& user, const Message& msg);//TEMPORAIREMENT EN PUBLIC
+    void                              handleNICK(User&, const Message&);
+    void                              dispatchCommand(User& user, const Message& msg);
     void                              tryRegister(User& user);
     void                              sendToClient(User& user, const std::string& message);
     void                              handlePING(User& user, const Message& msg);
@@ -36,7 +36,7 @@ private:
     std::string                       _password;
     bool                              _running;
     int                               _serverFd;
-    std::vector<pollfd>               _pollFds;//contient fd, events reventd
+    std::vector<pollfd>               _pollFds;
     std::map<int, User*>              _usersByFd;
     std::map<std::string, User*>      _usersByNick;
     std::map<std::string, Channel*>   _channels;

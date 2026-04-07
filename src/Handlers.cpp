@@ -41,7 +41,7 @@ void Server::dispatchCommand(User& user, const Message& msg)
         handleUnknown(user, msg);
 }
 
-void Server::handlePING(User& user, const Message& msg)//on garde la connexion vivante
+void Server::handlePING(User& user, const Message& msg)
 {
     if (!msg._trailing.empty())
         sendToClient(user, ":ircserv PONG :" + msg._trailing);
@@ -67,40 +67,39 @@ void Server::sendToClient(User& user, const std::string& message)
     {
         if (_pollFds[i].fd == user.getFd())
         {
-            _pollFds[i].events |= POLLOUT;//notifie moi quand je peux ecrire
-            //je garde le POLLIN --> continuer a ecouter ET j'ajoute POLLOUT temporairement--> prepare a l'ecriture
+            _pollFds[i].events |= POLLOUT;
             break;
         }
     }
 }
-//Envoyer au client ce qui est stocker dans son buffer de sortie
+
 void Server::flushClientOutput(int clientFd)
 {
     std::map<int, User*>::iterator it = _usersByFd.find(clientFd);
-    if (it == _usersByFd.end() || it->second == NULL)//cas client n'existe pas
+    if (it == _usersByFd.end() || it->second == NULL)
         return;
-    User* user = it->second;//recup son pointeur vers l'obj User
-    if (user->outbuf().empty())//si buffer vide
+    User* user = it->second;
+    if (user->outbuf().empty())
     {
         for (size_t i = 0; i < _pollFds.size(); ++i)
         {
             if (_pollFds[i].fd == clientFd)
             {
-                _pollFds[i].events &= ~POLLOUT;//retirer POLLOUT car on a plus besoin d'etre prevenues pour ecrire
+                _pollFds[i].events &= ~POLLOUT;
                 break;
             }
         }
         return;
     }
-    ssize_t sent = send(clientFd, user->outbuf().c_str(), user->outbuf().size(), 0);//pas vide, on tente d'envoyer au client le contenu du buffer de sortie
+    ssize_t sent = send(clientFd, user->outbuf().c_str(), user->outbuf().size(), 0);
     if (sent <= 0)
     {
         std::cerr << "ERROR: send failed" << std::endl;
         disconnectClient(clientFd);
         return;
     }
-    user->outbuf().erase(0, sent);//je clean mon buffer
-    if (user->outbuf().empty())//verif bien clean
+    user->outbuf().erase(0, sent);
+    if (user->outbuf().empty())
     {
         for (size_t i = 0; i < _pollFds.size(); ++i)
         {
@@ -113,11 +112,6 @@ void Server::flushClientOutput(int clientFd)
     }
 }
 
-/*
-&= garde uniquement les bit communs --> je ne garde que POLLIN
-enlever le flag POLLOUT de la socket, je ne veux plus etr enotifie quand la socket est prete a ecrire
-permet de desactvier POLLOUT quand le buffer est vide pour eviter les spams de poll
-*/
 bool Server::requireRegistered(User & user)
 {
     if (!user.isRegistered())
@@ -186,7 +180,7 @@ void Server::handleNICK(User& user, const Message& msg)
 
     user.setNick(newNick);
     user.setHasNick(true);
-    _usersByNick[newNick] = &user;//enregistrer que ce nouveau nickname appartient a cet user la
+    _usersByNick[newNick] = &user;
     if (!oldNick.empty())
     {
         std::string nickMsg = ":" + oldNick + "!" + user.getUsername() + "@localhost NICK :" + newNick;
@@ -222,7 +216,7 @@ void Server::handleUSER(User& user, const Message& msg)
     }
     if (msg._params.size() < 3 || msg._trailing.empty())
     {
-        std::cout << "ERROR: USER needs username, mode, unused and realname" << std::endl;//TODO 1 trouver les bons msg d'erreur pour renvoyer depuis la socket proprement 
+        std::cout << "ERROR: USER needs username, mode, unused and realname" << std::endl;
         sendToClient(user, ":ircserv 461 " + getClientName(user) + " USER :Not enough parameters");
         return;
     }
@@ -350,8 +344,7 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
     const std::string& text = msg._trailing;
 
     std::string fullMsg = ":" + user.getNick() + "!" + user.getUsername() + "@localhost PRIVMSG " + target + " :" + text;
-    // for (std::map<std::string, User*>::iterator it = _usersByNick.begin(); it != _usersByNick.end(); ++it)
-    //     std::cout << "[" << it->first << "]" << std::endl;
+
     if (_usersByNick.count(target))
     {
         User* targetUser = _usersByNick[target];
@@ -380,13 +373,6 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
     }
     sendToClient(user, ":ircserv 401 " + user.getNick() + " " + target + " :No such nick/channel");
 }
-
-/*
-Rappel process:
-Le client irssi tape --> /msg mike hi whats up
-irssi envoie au serveur irc (MOI) --> PRIVMSG make :hi whats up
-je renvoie au client irssi --> :sara!user@host PRIVMSG mike: hi whats up
-*/
 
 void Server::handleKICK(User& user, const Message& msg)
 {
@@ -453,7 +439,6 @@ void Server::handleKICK(User& user, const Message& msg)
     }
 }
 
-//INVITE <nick> <channel>
 void Server::handleINVITE(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
@@ -504,19 +489,6 @@ void Server::handleINVITE(User& user, const Message& msg)
     sendToClient(*targetUser, ":" + user.getNick() + "!" + user.getUsername() + "@localhost INVITE " + targetNick + " :" + channelName);
 
 }
-/*
-Verifs :
-- assez de params
-- channel existe
-- le user qui invite est sur le channel
-- si il est operetor si on est mode invite only
-- la cible existe
-- la cible n'est pas deja dans le channel
-- ajouter la cible aux invites du channel
-- envoyer la reponse a l'inviteur
-- envoyer le msg INVITE a la target
-*/
-
 
 void Server::handleTOPIC(User& user, const Message& msg)
 {
@@ -569,21 +541,6 @@ void Server::handleTOPIC(User& user, const Message& msg)
         sendToClient(**it, topicMsg);
     }
 }
-
-/*
-Utilisations:
-- TOPIC #chan -->lire le topic
-- TOPIC #chan :nouveau topic --> update le topic
-- user enregistrer
-- au moisn un param
-- channel existant
-- si pas de trailing j'affiche el topic actuel
-- si trailing present je dois changer le topic
-- si channel->istopicrestricted et user pas op --> nope
-- sinon channel->setTopic(msg._trailing)
-- affichage du nouveau topic a tous les membres du channel 
-*/
-
 
 void Server::handleMODE(User& user, const Message& msg)
 {
@@ -722,29 +679,6 @@ void Server::handleMODE(User& user, const Message& msg)
         sendToClient(**it, modeMsg);
     }
 }
-    /*
-    - verif si param < 3
-    - verif si nick existe dans _usersByNick
-    - recuperer ma targetUser
-    - verif si targetUser est bien dans le channel
-    - si +o je addOperator(targetUser)
-    - si -o je remove
-    
-    */
-
-/*
-TO DO:
-- i --> mettre ou enlever du mode invite only un channel
-- t --> mettre ou enlever droit de la commande TOPIC pour operators
-- k --> mettre ou enlever mdp pour le channel
-- l --> donner ou enlever droit operator a un user
-- o --> mettre ou enlever nb de user limit par channel
-    MODE #chan +o nick
-- Update handleJOIN suite a handleMODE -t
-- Update handleINVITE suite a handleMODE -i
-- Update disconnectClient
-
-*/
 
 void Server::handlePART(User& user, const Message& msg)
 {
@@ -791,7 +725,3 @@ void Server::handleUnknown(User& user, const Message& msg)
 {
     sendToClient(user, ":ircserv 421 " + getClientName(user) + " " + msg._command + " :Unknown command");
 }
-
-
-
-

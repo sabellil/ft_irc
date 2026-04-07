@@ -1,8 +1,7 @@
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
 #include "../include/Message.hpp"
-#include "../include/Errors.hpp"
-#include "../include/colors.hpp"
+#include "../include/Colors.hpp"
 #include "../include/Channel.hpp"
 
 #include <set>
@@ -38,7 +37,7 @@ void Server::initServerFd()
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = 0;
-    hints.ai_flags = AI_PASSIVE; // adresse passive = adresse en ecoute donc adresse serveur
+    hints.ai_flags = AI_PASSIVE;
 
     if (getaddrinfo(NULL, _raw_port, &hints, &result) != 0 ) {
         throw std::logic_error("No port available. Cannot launch server. ");
@@ -58,7 +57,7 @@ void Server::initServerFd()
     }
 
     
-    int yes = 1;// ci apres, ajout des eventuelles options a config sur la socket// liste des options de config socket sur ce lien : https://fr.manpages.org/socket/7
+    int yes = 1;
     if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
     {
         freeaddrinfo(result);
@@ -161,12 +160,12 @@ void Server::run()
                     onClientRead(fd);
                     if (_pollFds.size() < oldSize)
                     {
-                        --i;//on evite de sauter l'element dans le vector
-                        continue;//on repart au tour suivant du for
+                        --i;
+                        continue;
                     }
                 }
 
-                if (_usersByFd.count(fd) && (revents & POLLOUT))//poll indique via revents que je peux ecrire su rla socket (POLLOUT)
+                if (_usersByFd.count(fd) && (revents & POLLOUT))
                     flushClientOutput(fd);
             }
         }
@@ -193,24 +192,24 @@ void Server::run()
     std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
 }
 
-//Lit les octets envoyes par recv(), les ajoute au buffer puis declenche traitement du parsing
+
 void Server::onClientRead(int clientFd)
 {
     char buffer[4096];
 
     int bytesRead = recv(clientFd, buffer, sizeof(buffer), 0);
-    if (bytesRead == 0)//le client est deconnecte
+    if (bytesRead == 0)
     {
         disconnectClient(clientFd);
         return;
     }
-    if (bytesRead < 0)//erreur pendant la lecture de recv
+    if (bytesRead < 0)
     {
         std::cout << "ERROR: recv failed" << std::endl;
         return;
     }
     std::map<int, User*>::iterator it = _usersByFd.find(clientFd);
-    if (it == _usersByFd.end() || it->second == NULL)//clientFd pas reconnu ou pas associe a un User valide
+    if (it == _usersByFd.end() || it->second == NULL)
     {
         std::cout << "ERROR: unknown clientFd in onClientRead" << std::endl;
         return;
@@ -225,14 +224,14 @@ void Server::onClientRead(int clientFd)
 void    Server::disconnectClient(int clientFd)
 {
     std::map<int, User*>::iterator userIt = _usersByFd.find(clientFd);
-    if (userIt == _usersByFd.end())//verifie si le clientFd correspond bien a un user existant
+    if (userIt == _usersByFd.end())
         return;
     User* user = userIt->second;
-    if (!user->getNick().empty())//verifie si le user a un nick avant de le supprimer. Empty test dans le cas d'une deconnection avant d'avoir choiss son nick
+    if (!user->getNick().empty())
         _usersByNick.erase(user->getNick());
-    for (std::map<std::string, Channel*>::iterator chanIt = _channels.begin(); chanIt != _channels.end(); )//on parcourt tous nos channels
+    for (std::map<std::string, Channel*>::iterator chanIt = _channels.begin(); chanIt != _channels.end(); )
     {
-        Channel* channel = chanIt->second;//je recupere mon channel courant
+        Channel* channel = chanIt->second;
         if (channel->hasUser(user))
         {
             std::string quitMsg = ":" + user->getNick() + "!" + user->getUsername() + "@localhost QUIT :Client Quit";
@@ -245,18 +244,18 @@ void    Server::disconnectClient(int clientFd)
             channel->removeUser(user);
             user->removeChannel(channel);
         }
-        if (channel->getUsers().empty())//retirer les objets channels vides
+        if (channel->getUsers().empty())
         {
             delete channel;
             std::map<std::string, Channel*>::iterator toErase = chanIt++;
             _channels.erase(toErase);
         }
-        else//si pas vide je passe a la suite
+        else
         {
             ++chanIt;
         }
     }
-    for (std::vector<pollfd>::iterator it = _pollFds.begin(); it != _pollFds.end(); ++it)//nettoyer notre vector pollfds
+    for (std::vector<pollfd>::iterator it = _pollFds.begin(); it != _pollFds.end(); ++it)
     {
         if (it->fd == clientFd)
         {
@@ -271,9 +270,6 @@ void    Server::disconnectClient(int clientFd)
     std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
 }
 
-
-
-//Analyse _inbuf de l'utilisateur pour extraire chaque lgien complete et les renvoie au parseur IRC
 void Server::processInputBuffer(User& user)
 {
     std::string& buf = user.inbuf();
