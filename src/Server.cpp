@@ -25,7 +25,6 @@ Server::Server(char * raw_port, const std::string& password)
 
 Server::~Server() {}
 
-
 void Server::initServerFd()
 {
 
@@ -259,7 +258,7 @@ void    Server::disconnectClient(int clientFd)
     close(clientFd);
     _usersByFd.erase(userIt);
     delete user;
-    std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
+    // std::cerr << YELLOW "--> Client/fd " << clientFd << " Disconnected !" RESET << std::endl;
 }
 
 void Server::processInputBuffer(User& user)

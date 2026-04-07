@@ -5,9 +5,7 @@
 #include "../include/Channel.hpp"
 
 
-User::User(int fd) : _fd(fd), _nick(""), _username(""), _realname(""), _hasPass(false), _hasNick(false), _hasUser(false), _registered(false), _shouldDisconnect(false), _inbuf(""), _outbuf("") {
-    std::cout << "--> User created for fd : " << _fd << std::endl;
-}
+User::User(int fd) : _fd(fd), _nick(""), _username(""), _realname(""), _hasPass(false), _hasNick(false), _hasUser(false), _registered(false), _shouldDisconnect(false), _inbuf(""), _outbuf("") {}
 
 User::~User() {}
 
@@ -31,7 +29,6 @@ void User::setNick(const std::string& nickname)
     _nick = nickname;
 }
 
-
 void User::setUsername(const std::string& username)
 {
     _username = username;
@@ -41,7 +38,6 @@ void User::setHasNick(bool value)
 {
     _hasNick = value;
 }
-
 
 bool User::hasUser() const
 {

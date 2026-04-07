@@ -8,7 +8,6 @@
 #include <sys/socket.h>
 #include <cstdlib>
 
-
 void Server::dispatchCommand(User& user, const Message& msg)
 {
     const std::string& cmd = msg._command;
