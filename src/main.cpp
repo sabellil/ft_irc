@@ -15,19 +15,6 @@
 #include <arpa/inet.h> //ai_family
 #include <string.h> //memset
 
-
-// static void printUserState(const User& user)
-// {
-//     std::cout << "nick       = [" << user.getNick() << "]" << std::endl;
-//     std::cout << "username   = [" << user.getUsername() << "]" << std::endl;
-//     std::cout << "realname   = [" << user.getRealname() << "]" << std::endl;
-//     std::cout << "hasPass    = " << user.hasPass() << std::endl;
-//     std::cout << "hasNick    = " << user.hasNick() << std::endl;
-//     std::cout << "hasUser    = " << user.hasUser() << std::endl;
-//     std::cout << "registered = " << user.isRegistered() << std::endl;
-//     std::cout << "\n" << std::endl;
-// }
-
 volatile sig_atomic_t g_run = 0;
 
 int main(int ac, char **av) {
