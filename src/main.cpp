@@ -7,7 +7,6 @@
 #include <string>
 #include <exception>
 #include <cstdlib>
-#include <errno.h>
 #include <unistd.h>//close
 #include <sys/socket.h>//accept recv
 #include <iostream>
