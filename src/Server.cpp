@@ -300,3 +300,4 @@ void Server::processInputBuffer(User& user)
             return;
     }
 }
+
