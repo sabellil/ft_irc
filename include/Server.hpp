@@ -20,15 +20,6 @@ public:
     ~Server();
 
     void                              run();
-    void                              onClientRead(int clientFd);
-    void                              acceptClient();
-    void                              disconnectClient(int clientFd);
-    void                              processInputBuffer(User& user);
-    void                              handleNICK(User&, const Message&);
-    void                              dispatchCommand(User& user, const Message& msg);
-    void                              tryRegister(User& user);
-    void                              sendToClient(User& user, const std::string& message);
-    void                              handlePING(User& user, const Message& msg);
 
 private:    
     char *                            _raw_port;
@@ -41,21 +32,29 @@ private:
     std::map<std::string, User*>      _usersByNick;
     std::map<std::string, Channel*>   _channels;
 
+    void                              onClientRead(int clientFd);
+    void                              acceptClient();
+    void                              disconnectClient(int clientFd);
+    void                              processInputBuffer(User& user);
     std::string                       getClientName(const User& user) const;
-    void                              handlePASS(User&, const Message&);
-    void                              handleUSER(User&, const Message&);
-    void                              handleJOIN(User&, const Message&);
-    void                              handlePRIVMSG(User&, const Message&);
-    void                              handleKICK(User&, const Message&);
-    void                              handleINVITE(User&, const Message&);
-    void                              handleTOPIC(User&, const Message&);
-    void                              handleMODE(User&, const Message&);
-    void                              handlePART(User&, const Message&);
-    void                              handleUnknown(User&, const Message&);
-    bool                              requireRegistered(User& user);
     void                              initServerFd();
     void                              flushClientOutput(int clientFd);
-
+    void                              tryRegister(User& user);
+    void                              sendToClient(User& user, const std::string& message);
+    void                              dispatchCommand(User& user, const Message& msg);
+    void                              handleNick(User&, const Message&);
+    void                              handlePass(User&, const Message&);
+    void                              handleUser(User&, const Message&);
+    void                              handleJoin(User&, const Message&);
+    void                              handlePrivmsg(User&, const Message&);
+    void                              handleKick(User&, const Message&);
+    void                              handleInvite(User&, const Message&);
+    void                              handleTopic(User&, const Message&);
+    void                              handleMode(User&, const Message&);
+    void                              handlePart(User&, const Message&);
+    void                              handlePing(User& user, const Message& msg);
+    void                              handleUnknown(User&, const Message&);
+    bool                              requireRegistered(User& user);
 };
 
 #endif

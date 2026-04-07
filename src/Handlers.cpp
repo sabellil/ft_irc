@@ -14,34 +14,34 @@ void Server::dispatchCommand(User& user, const Message& msg)
     const std::string& cmd = msg._command;
 
     if (cmd == "PASS")
-        handlePASS(user, msg);
+        handlePass(user, msg);
     else if (cmd == "NICK")
-        handleNICK(user, msg);
+        handleNick(user, msg);
     else if (cmd == "USER")
-        handleUSER(user, msg);
+        handleUser(user, msg);
     else if (cmd == "JOIN")
-        handleJOIN(user, msg);
+        handleJoin(user, msg);
     else if (cmd == "PRIVMSG")
-        handlePRIVMSG(user, msg);
+        handlePrivmsg(user, msg);
     else if (cmd == "KICK")
-        handleKICK(user, msg);
+        handleKick(user, msg);
     else if (cmd == "INVITE")
-        handleINVITE(user, msg);
+        handleInvite(user, msg);
     else if (cmd == "TOPIC")
-        handleTOPIC(user, msg);
+        handleTopic(user, msg);
     else if (cmd == "MODE")
-        handleMODE(user, msg);
+        handleMode(user, msg);
     else if (cmd == "PING")
-        handlePING(user, msg);
+        handlePing(user, msg);
     else if (cmd == "PART")
-        handlePART(user, msg);
+        handlePart(user, msg);
     else if (cmd == "CAP")
         return;
     else
         handleUnknown(user, msg);
 }
 
-void Server::handlePING(User& user, const Message& msg)
+void Server::handlePing(User& user, const Message& msg)
 {
     if (!msg._trailing.empty())
         sendToClient(user, ":ircserv PONG :" + msg._trailing);
@@ -122,7 +122,7 @@ bool Server::requireRegistered(User & user)
     return true;
 }
 
-void Server::handlePASS(User& user, const Message& msg)
+void Server::handlePass(User& user, const Message& msg)
 {
     if (user.isRegistered())
     {
@@ -149,7 +149,7 @@ void Server::handlePASS(User& user, const Message& msg)
     tryRegister(user);
 }
 
-void Server::handleNICK(User& user, const Message& msg)
+void Server::handleNick(User& user, const Message& msg)
 {
     if (msg._params.empty() || msg._params[0].empty())
     {
@@ -192,7 +192,7 @@ void Server::handleNICK(User& user, const Message& msg)
     tryRegister(user);
 }
 
-void Server::handleUSER(User& user, const Message& msg)
+void Server::handleUser(User& user, const Message& msg)
 {
     if (user.isRegistered())
     {
@@ -231,7 +231,7 @@ void Server::tryRegister(User& user)
     sendToClient(user, ":ircserv 001 " + getClientName(user) + " :Welcome to the IRC server");
 }
 
-void Server::handleJOIN(User& user, const Message& msg)
+void Server::handleJoin(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
@@ -311,7 +311,7 @@ void Server::handleJOIN(User& user, const Message& msg)
     sendToClient(user, ":ircserv 366 " + user.getNick() + " " + channelName + " :End of /NAMES list");
 }
 
-void Server::handlePRIVMSG(User& user, const Message& msg)
+void Server::handlePrivmsg(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
@@ -354,7 +354,7 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
     sendToClient(user, ":ircserv 401 " + user.getNick() + " " + target + " :No such nick/channel");
 }
 
-void Server::handleKICK(User& user, const Message& msg)
+void Server::handleKick(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
@@ -419,7 +419,7 @@ void Server::handleKICK(User& user, const Message& msg)
     }
 }
 
-void Server::handleINVITE(User& user, const Message& msg)
+void Server::handleInvite(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
@@ -470,7 +470,7 @@ void Server::handleINVITE(User& user, const Message& msg)
 
 }
 
-void Server::handleTOPIC(User& user, const Message& msg)
+void Server::handleTopic(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
@@ -522,7 +522,7 @@ void Server::handleTOPIC(User& user, const Message& msg)
     }
 }
 
-void Server::handleMODE(User& user, const Message& msg)
+void Server::handleMode(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
@@ -660,7 +660,7 @@ void Server::handleMODE(User& user, const Message& msg)
     }
 }
 
-void Server::handlePART(User& user, const Message& msg)
+void Server::handlePart(User& user, const Message& msg)
 {
     if (!requireRegistered(user))
         return;
