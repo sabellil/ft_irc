@@ -126,31 +126,26 @@ void Server::handlePASS(User& user, const Message& msg)
 {
     if (user.isRegistered())
     {
-        std::cout << "ERROR: already registered!" << std::endl;
         sendToClient(user, ":ircserv 462 " + getClientName(user) + " PASS :You may not reregister");
         return;
     }
     if (user.hasPass())
     {
-        std::cout << "ERROR: PASS already set." << std::endl;
         sendToClient(user, ":ircserv 462 " + getClientName(user) + " PASS :You may not reregister");
         return;
     }
     if (msg._params.empty())
     {
-        std::cout << "ERROR: No password given!" << std::endl;
         sendToClient(user, ":ircserv 461 " + getClientName(user) + " PASS :Not enough parameters");
         return;
     }
     if (msg._params[0] != _password)
     {
-        std::cout << "ERROR: wrong password!!!!! Try again" << std::endl;
         sendToClient(user, ":ircserv 464 " + getClientName(user) + " PASS :Password incorrect");
         user.setShouldDisconnect(true);
         return;
     }
     user.setHasPass(true);
-    std::cout << "PASS accepted!" << std::endl;
     tryRegister(user);
 }
 
@@ -158,7 +153,6 @@ void Server::handleNICK(User& user, const Message& msg)
 {
     if (msg._params.empty() || msg._params[0].empty())
     {
-        std::cout << "ERROR: No nickname given" << std::endl;
         sendToClient(user, ":ircserv 431 " + getClientName(user) + " NICK :No nickname given");
         return;
     }
@@ -170,7 +164,6 @@ void Server::handleNICK(User& user, const Message& msg)
 
     if (_usersByNick.count(newNick))
     {
-        std::cout << "ERROR: Nickname already in use" << std::endl;
         sendToClient(user, ":ircserv 433 " + getClientName(user) + " " + newNick + " :Nickname is already in use");
         return;
     }
@@ -196,7 +189,6 @@ void Server::handleNICK(User& user, const Message& msg)
             }
         }
     }
-    std::cout << "New nick set to: " << user.getNick() << std::endl;
     tryRegister(user);
 }
 
@@ -204,19 +196,16 @@ void Server::handleUSER(User& user, const Message& msg)
 {
     if (user.isRegistered())
     {
-        std::cout << "ERROR: USER already registered. " << std::endl;
         sendToClient(user, ":ircserv 462 " + getClientName(user) + " USER :You may not reregister");
         return;
     }
     if (user.hasUser())
     {
-        std::cout << "ERROR: USER already set" << std::endl;
         sendToClient(user, ":ircserv 462 " + getClientName(user) + " USER :You may not reregister");
         return;
     }
     if (msg._params.size() < 3 || msg._trailing.empty())
     {
-        std::cout << "ERROR: USER needs username, mode, unused and realname" << std::endl;
         sendToClient(user, ":ircserv 461 " + getClientName(user) + " USER :Not enough parameters");
         return;
     }
@@ -224,9 +213,6 @@ void Server::handleUSER(User& user, const Message& msg)
     user.setUsername(msg._params[0]);
     user.setRealname(msg._trailing);
     user.setHasUser(true);
-
-    std::cout << "USER set to: " << user.getUsername() << std::endl;
-    std::cout << "REALNAME set to: " << user.getRealname() << std::endl;
 
     tryRegister(user);
 }
@@ -242,7 +228,6 @@ void Server::tryRegister(User& user)
     if (!user.hasUser())
         return;
     user.setRegistered(true);
-    std::cout << "User registered:" << user.getNick() << " ("<< user.getUsername() <<")" << std::endl;
     sendToClient(user, ":ircserv 001 " + getClientName(user) + " :Welcome to the IRC server");
 }
 
@@ -256,7 +241,6 @@ void Server::handleJOIN(User& user, const Message& msg)
         return;
     }
     const std::string& channelName = msg._params[0];
-    std::cout << "JOIN param=[" << channelName << "]" << std::endl;
     if (channelName.empty() || channelName[0] != '#')
     {
         sendToClient(user, ":ircserv 476 " + user.getNick() + " " + channelName + " :Bad Channel Mask");
@@ -298,7 +282,6 @@ void Server::handleJOIN(User& user, const Message& msg)
             return;
         }
     }
- 
 
     channel->addUser(&user);
     user.addChannel(channel);
@@ -324,7 +307,6 @@ void Server::handleJOIN(User& user, const Message& msg)
             names += "@";
         names += (*it)->getNick();
     }
-
     sendToClient(user, ":ircserv 353 " + user.getNick() + " = " + channelName + " :" + names);
     sendToClient(user, ":ircserv 366 " + user.getNick() + " " + channelName + " :End of /NAMES list");
 }
@@ -348,8 +330,6 @@ void Server::handlePRIVMSG(User& user, const Message& msg)
     if (_usersByNick.count(target))
     {
         User* targetUser = _usersByNick[target];
-        std::cout << "PRIVMSG to nick = [" << target << "]" << std::endl;
-        std::cout << "fullMsg = [" << fullMsg << "]" << std::endl;
         sendToClient(*targetUser, fullMsg);
         return;
     }

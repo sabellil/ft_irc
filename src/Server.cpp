@@ -80,13 +80,9 @@ void Server::initServerFd()
 
 void Server::run()
 {
-    std::cout << "Starting new server.\nPort: " << this->_port
-              << "\nPassword: " << this->_password << std::endl;
-
+    std::cout << GREEN "Server started on port " << this->_port << RESET << std::endl;
     g_run = 1;
     initServerFd();
-
-    std::cout << GREEN "SERVER LISTENING :" RESET << std::endl;
 
     pollfd pfd_server = {this->_serverFd, POLLIN, 0};
     _pollFds.push_back(pfd_server);
@@ -96,6 +92,8 @@ void Server::run()
         int pollReturn = poll(&_pollFds[0], _pollFds.size(), 2000);
         if (pollReturn < 0)
         {
+            if (g_run == 0)
+                break;
             std::cerr << "poll() failed" << std::endl;
             break;
         }
@@ -146,11 +144,8 @@ void Server::run()
                 newFdToPoll.fd = client_fd;
                 newFdToPoll.events = POLLIN;
                 newFdToPoll.revents = 0;
-
                 _usersByFd[client_fd] = new User(client_fd);
                 _pollFds.push_back(newFdToPoll);
-
-                std::cout << "New client connected: fd " << client_fd << std::endl;
             }
             else
             {
@@ -171,8 +166,6 @@ void Server::run()
         }
     }
 
-    std::cout << YELLOW "stopping server" RESET << std::endl;
-
     for (size_t i = 0; i < _pollFds.size();)
     {
         int fd = _pollFds[i].fd;
@@ -189,7 +182,7 @@ void Server::run()
     close(_serverFd);
     _pollFds.clear();
 
-    std::cerr << RED "\rSERVER CLOSED" RESET << std::endl;
+    std::cerr << RED "Server stopped" RESET << std::endl;
 }
 
 
@@ -211,7 +204,6 @@ void Server::onClientRead(int clientFd)
     std::map<int, User*>::iterator it = _usersByFd.find(clientFd);
     if (it == _usersByFd.end() || it->second == NULL)
     {
-        std::cout << "ERROR: unknown clientFd in onClientRead" << std::endl;
         return;
     }
     User* user = it->second;

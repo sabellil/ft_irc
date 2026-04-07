@@ -22,13 +22,12 @@ void    check_arg(int ac, char **av) {
             if (isgraph(password[i]) == false)
                 throw std::logic_error("Invalid Password : only letters, symbols or digits allowed");
         }
-        std::cout << GREEN "ARG OK" RESET << std::endl;
         return;
 }
 
 void    sigStopHandler(int signum) {
     
-    std::cerr << YELLOW "\rInterruption du serveur par signal " RESET << signum << std::endl; 
+    std::cerr << YELLOW "\rServer interrupted by signal " << signum << RESET << std::endl; 
     g_run = 0;
     return;
 
