@@ -39,8 +39,6 @@ class Channel
         const std::string&      getTopic() const;
         void                    setTopic(const std::string& topic);
 
-
-
         bool                    hasKey() const;
         const std::string&      getKey() const;
         void                    setKey(const std::string& key);
@@ -56,13 +54,10 @@ class Channel
         std::set<User*>         _operators;
         std::set<User*>         _invitedUsers;
         std::string             _topic;
-
         bool                    _inviteOnly;
         bool                    _topicRestricted;
-
         bool                    _hasKey;
         std::string             _key;
-
         int                     _userLimit;
         bool                    _hasUserLimit;
 };

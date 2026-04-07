@@ -22,7 +22,7 @@ public:
     void                              run();
 
 private:    
-    char *                            _raw_port;
+    char*                             _raw_port;
     int                               _port;
     std::string                       _password;
     bool                              _running;
@@ -42,6 +42,7 @@ private:
     void                              tryRegister(User& user);
     void                              sendToClient(User& user, const std::string& message);
     void                              dispatchCommand(User& user, const Message& msg);
+    
     void                              handleNick(User&, const Message&);
     void                              handlePass(User&, const Message&);
     void                              handleUser(User&, const Message&);

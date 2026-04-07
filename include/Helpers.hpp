@@ -11,8 +11,6 @@
 extern volatile sig_atomic_t g_run;
 
 void    sigStopHandler(int signum);
-
 void    check_arg(int ac, char **av);
-
 
 #endif
