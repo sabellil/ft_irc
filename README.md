@@ -101,9 +101,9 @@ With the great help of https://beej.us/guide/bgnet/html/split-wide/index.html
 * **RTFM :** [poll](https://linux.die.net/man/2/poll) , [socket](https://linux.die.net/man/2/socket) , [bind](https://linux.die.net/man/2/bind) , [accept](https://linux.die.net/man/2/accept) ; FORBIDDEN : [recv](https://linux.die.net/man/2/recv) , [send](https://linux.die.net/man/2/send)
 
 * **Documentations**
-- https://beej.us/guide/bgnet/
-- IRSSI (our reference client) : [Documentation](https://irssi.org/) [github](https://github.com/irssi)
-- 
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/html/split-wide/index.html)
+- IRSSI (our reference client) : [Documentation](https://irssi.org/documentation/help/) [github](https://github.com/irssi)
+- IRC Protocol : [RFC 1459](https://datatracker.ietf.org/doc/html/rfc1459) , [General documentation](https://www.irchelp.org/) , [intro to numerics](https://mathieu-lemoine.developpez.com/tutoriels/irc/protocole/?page=page-5) , [more numerics](https://dd.ircdocs.horse/refs/numerics/001) 
 
 * **Peer-learning** special thx to jbrousse, phwang, jewu, gcaptari, tfauve-p for their tips
 
