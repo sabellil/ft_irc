@@ -8,11 +8,11 @@
    - [Quick project description](#Description)
    - [Subject requirement](#Requirement)
 
-* [Instruction](#Instruction)
+* [Instructions](#Instructions)
     - [How to compile ?](#Compilation)
     - [How to use it ?](#Use)
  
-* [Ressources](#Ressources)
+* [Resources](#Resources)
    - Documentation
    - RTFM (man)
    - Peer-Learning
@@ -91,7 +91,7 @@ irssi
 /connect localhost <port> <password>
 ```
 
-## Ressources
+## Resources
 * **RTFM :** 
     - [poll](https://linux.die.net/man/2/poll), [socket](https://linux.die.net/man/2/socket), [bind](https://linux.die.net/man/2/bind), [accept](https://linux.die.net/man/2/accept)
     - These two are forbidden in this project but seemed important and topic related [recv](https://linux.die.net/man/2/recv), [send](https://linux.die.net/man/2/send)
