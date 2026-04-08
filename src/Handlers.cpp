@@ -384,7 +384,6 @@ void Server::handleKick(User& user, const Message& msg)
         return;
     }
 
-
     if (_usersByNick.count(targetNick) == 0)
     {
         sendToClient(user, ":ircserv 401 " + user.getNick() + " " + targetNick + " :No such nick");
