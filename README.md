@@ -69,7 +69,7 @@ make re       # full rebuild
 ```
 
 port: The port number on which your IRC server will be listening for incoming IRC connections. 
->    Usual IRC port are 6665 to 6669 (mostly 6667) but we choose to be more flexible.
+>    Usual IRC port are 6665 to 6669 (mostly 6667) but we choose to be more flexible (1024 to 65535 are accepted)
 
 password: The connection password.
 > It will be needed by any IRC client that tries to connect to your server. 
@@ -93,8 +93,7 @@ irssi
 
 ## Resources
 * **RTFM :** 
-    - [poll](https://linux.die.net/man/2/poll), [socket](https://linux.die.net/man/2/socket), [bind](https://linux.die.net/man/2/bind), [accept](https://linux.die.net/man/2/accept)
-    - These two are forbidden in this project but seemed important and topic related [recv](https://linux.die.net/man/2/recv), [send](https://linux.die.net/man/2/send)
+    - [poll](https://linux.die.net/man/2/poll), [socket](https://linux.die.net/man/2/socket), [bind](https://linux.die.net/man/2/bind), [accept](https://linux.die.net/man/2/accept), [recv](https://linux.die.net/man/2/recv), [send](https://linux.die.net/man/2/send)
 
 * **Documentations**
     - [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/html/split-wide/index.html)
