@@ -6,13 +6,23 @@
 #include <stdexcept>
 
 
-void    check_arg(int ac, char **av) {
+void    check_arg(int ac, char **av)
+{
         if (ac != 3)
             throw std::logic_error("Wrong nbr of arguments. Use ./ircserv <port> <password>");
+        
+        std::string portStr = av[1];
+        if (portStr.empty())
+            throw std::logic_error("Invalid port : musn't be empty");
+        for (size_t i = 0; i < portStr.size(); i++)
+        {
+            if (!std::isdigit(portStr[i]))
+                throw std::logic_error("Invalid port : must contain only digits");
+        }
 
         int port_wanted = std::atoi(av[1]);
-        if (port_wanted <= 0 || port_wanted > 65535)
-            throw std::logic_error("Invalid port: 1 =< port > 65535 ");
+        if (port_wanted < 1024 || port_wanted > 65535)
+            throw std::logic_error("Invalid port: < port > must be between 1024 and 65535");
 
         std::string password = av[2];
         if (password.size() < 4)

@@ -3,7 +3,6 @@
 #include "../include/User.hpp"
 #include "../include/Message.hpp"
 
-
 #include <string>
 #include <exception>
 #include <cstdlib>
@@ -21,7 +20,6 @@ int main(int ac, char **av) {
         check_arg(ac, av);
         signal(SIGINT, sigStopHandler);
         signal(SIGQUIT, sigStopHandler);
-
         Server server(av[1], av[2]);
         server.run();
     }
