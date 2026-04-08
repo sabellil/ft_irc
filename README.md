@@ -5,17 +5,16 @@
 ### Index :
 
 * [Description](#Description)
-> Quick project description
-> Subject requirement
-> organisation de l'équipe
+    Quick project description (#Description)
+    Subject requirement(#Assignement)
+
 * [Instruction](#Instruction)
-> How to compile
-> How use it
+    How to compile
+    How use it
  
 * [Ressources](#Ressources)
-> What's IRC
-> Implementation choices
-> Biblio
+    What's IRC
+    Biblio
 
 ## Description
 This project is a practical introduction to communication protocols through the creation of a minimal IRC server.
