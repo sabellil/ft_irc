@@ -557,7 +557,21 @@ void Server::handleMode(User& user, const Message& msg)
     }
     char sign = modeString[0];
     char mode = modeString[1];
-
+    if ((mode == 'i' || mode == 't') && msg._params.size() != 2)
+    {
+        sendToClient(user, ":ircserv 472 " + user.getNick() + " " + modeString + " :Only one mode at a time");
+        return;
+    }
+    if ((mode == 'k' || mode == 'l' || mode == 'o') && sign == '-' && msg._params.size() != 2)
+    {
+        sendToClient(user, ":ircserv 472 " + user.getNick() + " " + modeString + " :Only one mode at a time");
+        return;
+    }
+    if ((mode == 'k' || mode == 'l' || mode == 'o') && sign == '+' && msg._params.size() != 3)
+    {
+        sendToClient(user, ":ircserv 472 " + user.getNick() + " " + modeString + " :Only one mode at a time");
+        return;
+    }
     if (mode == 'i')
     {
         if (sign == '+')
