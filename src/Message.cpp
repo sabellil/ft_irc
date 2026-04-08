@@ -4,7 +4,8 @@
 #include "../include/Message.hpp"
 
 #include <cctype>
-Message::Message() : sender(NULL)
+
+Message::Message()
 {
 }
 

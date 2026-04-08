@@ -55,7 +55,7 @@ void Server::initServerFd()
         throw std::logic_error("Fail fcntl. Cannot launch server. ");
     }
 
-    
+
     int yes = 1;
     if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
     {
@@ -184,7 +184,6 @@ void Server::run()
     std::cerr << RED "Server stopped" RESET << std::endl;
 }
 
-
 void Server::onClientRead(int clientFd)
 {
     char buffer[4096];
@@ -253,7 +252,6 @@ void    Server::disconnectClient(int clientFd)
             _pollFds.erase(it);
             break;
         }
-
     }
     close(clientFd);
     _usersByFd.erase(userIt);
