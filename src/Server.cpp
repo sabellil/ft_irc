@@ -38,24 +38,21 @@ void Server::initServerFd()
     hints.ai_protocol = 0;
     hints.ai_flags = AI_PASSIVE;
 
-    if (getaddrinfo(NULL, _raw_port, &hints, &result) != 0 ) {
+    if (getaddrinfo(NULL, _raw_port, &hints, &result) != 0 )
+    {
         throw std::logic_error("No port available. Cannot launch server. ");
     }
-
     _serverFd = socket(result->ai_family, result->ai_socktype, result->ai_protocol); 
     if (_serverFd < 0 ) {
         freeaddrinfo(result);
         throw std::logic_error("Fail socket. Cannot launch server. ");
     }
-
     if (fcntl(_serverFd, F_SETFL, O_NONBLOCK) < 0)
     {
         freeaddrinfo(result);
         close(_serverFd);
         throw std::logic_error("Fail fcntl. Cannot launch server. ");
     }
-
-
     int yes = 1;
     if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
     {
