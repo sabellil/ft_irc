@@ -17,7 +17,7 @@
 > Implementation choices
 > Biblio
 
-## Description
+<!-- ## Description
 This project is a practical introduction to communication protocols through the creation of a minimal IRC server.
 Protocols are fundamental to networking, as they define how machines understand and respond to each other.
 IRC provides a simple yet realistic foundation to explore these concepts.
@@ -102,7 +102,7 @@ USER <username> 0 * :<nickname>
 
 What's a socket ?
 init, bind, listen
-With the great help of https://beej.us/guide/bgnet/html/split-wide/index.html
+With the great help of https://beej.us/guide/bgnet/html/split-wide/index.html -->
 
 ## Ressources
 * **RTFM :** [man](link)
