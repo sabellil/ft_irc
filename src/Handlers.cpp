@@ -155,12 +155,9 @@ void Server::handleNick(User& user, const Message& msg)
         sendToClient(user, ":ircserv 431 " + getClientName(user) + " NICK :No nickname given");
         return;
     }
-
     const std::string& newNick = msg._params[0];
-
     if (user.getNick() == newNick)
         return;
-
     if (_usersByNick.count(newNick))
     {
         sendToClient(user, ":ircserv 433 " + getClientName(user) + " " + newNick + " :Nickname is already in use");
